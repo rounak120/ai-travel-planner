@@ -1,0 +1,39 @@
+### Application status: expected HTTP 200 and milestone "trip-api"
+GET http://localhost:8080/api/v1/status
+Accept: application/json
+
+### Operational health: expected HTTP 200 and status "UP"
+GET http://localhost:8080/actuator/health
+Accept: application/json
+
+### Create a trip: HTTP 201 and Location header. Keep dates today or later.
+POST http://localhost:8080/api/v1/trips
+Content-Type: application/json
+
+{
+  "destination": "Jaipur",
+  "startDate": "2027-01-10",
+  "endDate": "2027-01-14",
+  "travelers": 2,
+  "budget": 50000,
+  "currency": "INR",
+  "interests": ["food", "history"]
+}
+
+### Read a trip: replace the UUID with the ID from the create response.
+GET http://localhost:8080/api/v1/trips/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### Invalid trip: HTTP 400, errors for destination, travelers, and budget.
+POST http://localhost:8080/api/v1/trips
+Content-Type: application/json
+
+{
+  "destination": "",
+  "startDate": "2027-01-10",
+  "endDate": "2027-01-14",
+  "travelers": 0,
+  "budget": -1,
+  "currency": "INR",
+  "interests": []
+}
