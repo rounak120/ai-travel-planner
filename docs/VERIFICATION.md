@@ -1,5 +1,27 @@
 # Verification
 
+## Lesson 4, step 2 — structured itinerary drafts (2026-10-03)
+
+- `JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./mvnw -B -ntp -Ddebug=false test`
+  passed: **65 tests, zero failures/errors**.
+- Fake-provider integration checks cover native output schema and token options,
+  single-day and seven-day plans, authoritative dates and decimal totals, invalid
+  cost precision/sign/budget, missing/null/malformed output, wrong day counts and
+  numbering, truncation, missing trips, unsupported lengths and sanitized provider
+  errors without retries. Tests do not call the real model.
+- AI routes remain absent without the `ai` profile.
+- Real local Ollama `qwen3:4b` generated a five-day Jaipur draft for the existing
+  saved trip: HTTP 200 in 16.20 seconds, dates January 10–14, 2027, estimated
+  listed-activity total INR 6,250.50. No itinerary was saved and no schema migration
+  was required. Suggestions are not fact-checked; repetitions and inaccurate
+  place details remain a known limitation.
+- Initial live generation with thinking enabled returned a safe 502 after
+  115 seconds. Disabling thinking specifically for native-schema drafts resolved
+  the tested failure; the original connection test keeps its original settings.
+- The application was restarted with the `ai` profile on localhost:8080.
+
+Older milestone results below are historical snapshots.
+
 ## Lesson 4 — switched to local Ollama on 2026-10-03
 
 Installed Ollama 0.35.1 with Homebrew and downloaded `qwen3:4b`

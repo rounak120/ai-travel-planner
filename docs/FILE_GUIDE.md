@@ -2,6 +2,22 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+## Itinerary draft files (Lesson 4, step 2)
+
+| File/package | Role in this milestone |
+| --- | --- |
+| `ai/ItineraryGenerator.java` | Builds the prompt and native JSON schema, calls Ollama, parses the untrusted answer. |
+| `itinerary/GeneratedItinerary.java` | Model-output records with validation constraints. |
+| `itinerary/ItineraryService.java` | Loads the trip, checks output, assigns dates and sums costs. |
+| `itinerary/ItineraryDraft.java` | Public response with authoritative trip fields and explicit estimate warnings. |
+| `itinerary/ItineraryController.java` | POST route and safe 404/422/502 errors. |
+| `itinerary/InvalidItineraryException.java` | Safe failure message without model or provider internals. |
+
+Java paths in this table start at `src/main/java/com/aibot/travelplanner/`.
+See [the current lesson](LESSON_4_ITINERARY.md) for the request flow and rationale.
+
+## Foundation files
+
 | File | Why it exists |
 | --- | --- |
 | `pom.xml` | Maven's build recipe: project coordinates, Java version, Spring Boot parent, dependencies, test setup, and executable JAR plugin. |

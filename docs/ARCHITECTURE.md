@@ -24,7 +24,8 @@ through JPA. Flyway manages the tables. Boxes are responsibilities;
 they are not all separate deployment units.
 
 Lesson 4, step 1 adds an opt-in Spring AI/Ollama connection test in package `ai`.
-It does not yet implement itinerary orchestration, structured output, or MCP.
+Step 2 adds a structured itinerary draft endpoint with server-side validation.
+Draft persistence and MCP remain future work.
 
 ```mermaid
 flowchart TD
@@ -54,8 +55,8 @@ working feature; there are no empty placeholder implementations.
 | --- | --- | --- |
 | `system` | Application status response | Implemented |
 | `trip` | Trip details, dates, budget, traveler preferences | Create/read, validation, and PostgreSQL persistence implemented |
-| `itinerary` | Day plans, activities, validation, revisions | Planned |
-| `ai` | Conversation, prompts, model calls, MCP client, structured output | Connection test implemented; itinerary orchestration and MCP planned |
+| `itinerary` | Day plans, activities, validation, revisions | Validated drafts implemented; persistence and revisions planned |
+| `ai` | Conversation, prompts, model calls, MCP client, structured output | Ollama connection and structured draft generation implemented; MCP planned |
 | `mcp` | MCP server tool definitions and transport configuration | Planned |
 | `integration` | External weather, place, and travel API adapters | Planned |
 | `security` | Sign-in and ownership checks | Planned before shared deployment |

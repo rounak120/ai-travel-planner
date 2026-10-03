@@ -24,6 +24,10 @@ Content-Type: application/json
 GET http://localhost:8080/api/v1/trips/00000000-0000-0000-0000-000000000000
 Accept: application/json
 
+### Generate a draft (AI profile + Ollama required); replace UUID with saved trip ID.
+POST http://localhost:8080/api/v1/trips/00000000-0000-0000-0000-000000000000/itinerary
+Accept: application/json
+
 ### Invalid trip: HTTP 400, errors for destination, travelers, and budget.
 POST http://localhost:8080/api/v1/trips
 Content-Type: application/json

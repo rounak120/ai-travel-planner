@@ -1,6 +1,10 @@
 package com.aibot.travelplanner.ai;
 
 import com.sun.net.httpserver.HttpServer;
+import com.aibot.travelplanner.trip.Trip;
+import com.aibot.travelplanner.trip.TripService;
+import com.aibot.travelplanner.trip.TripNotFoundException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,10 +25,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.Instant;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /** Exercises the real Spring AI HTTP client against a fake, never the real model. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -40,6 +50,113 @@ class AiConnectionTests {
 
     @LocalServerPort
     private int port;
+
+    @MockitoBean
+    private TripService trips;
+
+    private static final UUID TRIP_ID = UUID.randomUUID();
+
+    private void stubTrip(int days) {
+        var start = LocalDate.of(2027, 1, 10);
+        when(trips.get(TRIP_ID)).thenReturn(new Trip(TRIP_ID, "Jaipur", start,
+                start.plusDays(days - 1), 2, new BigDecimal("1000.00"), "INR",
+                List.of("history"), Instant.now()));
+    }
+
+    private static String itinerary(int day, String cost) {
+        return "{\"days\":[{\"dayNumber\":" + day
+                + ",\"activities\":[{\"title\":\" Fort visit \",\"description\":\"Explore local history.\",\"estimatedCost\":"
+                + cost + "}]}]}";
+    }
+
+    @Test
+    void returnsValidatedDraftWithServerDatesAndTotals() throws Exception {
+        stubTrip(1);
+        providerBody.set(completion(itinerary(1, "250.25")));
+        var response = request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST");
+        assertThat(response.statusCode()).isEqualTo(200);
+        var mapper = JsonMapper.builder().build();
+        var draft = mapper.readTree(response.body());
+        assertThat(draft.get("tripId").asText()).isEqualTo(TRIP_ID.toString());
+        assertThat(draft.get("days").get(0).get("date").asText()).isEqualTo("2027-01-10");
+        assertThat(draft.get("estimatedActivityCostTotal").asText()).isEqualTo("250.25");
+        assertThat(response.body()).contains("Fort visit", "not been saved", "INR");
+        var sent = mapper.readTree(requestBody.get());
+        assertThat(sent.get("format").isObject()).isTrue();
+        assertThat(sent.get("think").asBoolean()).isFalse();
+        assertThat(sent.get("options").get("num_predict").asInt()).isEqualTo(4096);
+        assertThat(sent.get("messages").toString()).contains("Jaipur", "history");
+        assertThat(calls.get()).isEqualTo(1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"-1", "1000.01", "1.001", "null"})
+    void rejectsInvalidActivityCosts(String cost) throws Exception {
+        stubTrip(1);
+        providerBody.set(completion(itinerary(1, cost)));
+        assertThat(request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST").statusCode()).isEqualTo(502);
+        assertThat(calls.get()).isEqualTo(1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "sensitive-invalid-content", "null", "{}", "{\"days\":[null]}", "{\"days\":[]}"})
+    void rejectsInvalidDraftShape(String content) throws Exception {
+        stubTrip(1);
+        providerBody.set(completion(content));
+        var response = request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST");
+        assertThat(response.statusCode()).isEqualTo(502);
+        assertThat(response.body()).doesNotContain("sensitive-invalid-content");
+    }
+
+    @Test
+    void acceptsSevenInclusiveDaysAndCalculatesTotal() throws Exception {
+        stubTrip(7);
+        var days = java.util.stream.IntStream.rangeClosed(1, 7)
+                .mapToObj(day -> itinerary(day, "10.25").substring(9))
+                .map(day -> day.substring(0, day.length() - 2))
+                .collect(java.util.stream.Collectors.joining(","));
+        providerBody.set(completion("{\"days\":[" + days + "]}"));
+        var response = request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST");
+        assertThat(response.statusCode()).isEqualTo(200);
+        var draft = JsonMapper.builder().build().readTree(response.body());
+        assertThat(draft.get("days").size()).isEqualTo(7);
+        assertThat(draft.get("days").get(6).get("date").asText()).isEqualTo("2027-01-16");
+        assertThat(draft.get("estimatedActivityCostTotal").asText()).isEqualTo("71.75");
+    }
+
+    @Test
+    void itineraryProviderFailureIsSanitizedWithoutRetry() throws Exception {
+        stubTrip(1);
+        providerStatus.set(500);
+        providerBody.set("{\"error\":\"sensitive-provider-detail\"}");
+        var response = request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST");
+        assertThat(response.statusCode()).isEqualTo(502);
+        assertThat(response.body()).doesNotContain("sensitive-provider-detail");
+        assertThat(calls.get()).isEqualTo(1);
+    }
+
+    @Test
+    void rejectsMissingDaysWrongNumberAndTruncation() throws Exception {
+        stubTrip(2);
+        providerBody.set(completion(itinerary(1, "10")));
+        assertThat(request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST").statusCode()).isEqualTo(502);
+        stubTrip(1);
+        providerBody.set(completion(itinerary(2, "10")));
+        assertThat(request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST").statusCode()).isEqualTo(502);
+        providerBody.set(completion(itinerary(1, "10")).replace("\"stop\"", "\"length\""));
+        assertThat(request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST").statusCode()).isEqualTo(502);
+    }
+
+    @Test
+    void rejectsUnknownTripAndLongTripsBeforeCallingModel() throws Exception {
+        when(trips.get(TRIP_ID)).thenThrow(new TripNotFoundException(TRIP_ID));
+        assertThat(request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST").statusCode()).isEqualTo(404);
+        org.mockito.Mockito.reset(trips);
+        stubTrip(8);
+        assertThat(request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST").statusCode()).isEqualTo(422);
+        assertThat(request("/api/v1/trips/not-a-uuid/itinerary", "POST").statusCode()).isEqualTo(400);
+        assertThat(calls.get()).isZero();
+    }
 
     private static HttpServer startProvider() {
         try {
@@ -146,10 +263,10 @@ class AiConnectionTests {
     private static String completion(String content) {
         return """
                 {"model":"qwen3:4b","created_at":"2026-10-03T07:00:00Z",
-                 "message":{"role":"assistant","content":"%s"},
+                 "message":{"role":"assistant","content":%s},
                  "done":true,"done_reason":"stop","total_duration":1000000,
                  "prompt_eval_count":15,"eval_count":8}
-                """.formatted(content);
+                """.formatted(JsonMapper.builder().build().writeValueAsString(content));
     }
 
     private HttpResponse<String> request(String path, String method) throws Exception {

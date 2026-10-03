@@ -24,4 +24,4 @@ spring:
     client:
       connect-timeout: 5s
       # A cold local model load can take longer than a hosted request.
-      read-timeout: 120s
+      read-timeout: 180s

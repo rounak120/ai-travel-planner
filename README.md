@@ -127,7 +127,7 @@ curl http://localhost:8080/api/v1/trips/REPLACE_WITH_ID
 ```
 
 Replace `REPLACE_WITH_ID` before running the command. Invalid fields return `400` with
-field errors; an unknown ID returns `404`. No itinerary is generated yet.
+field errors; an unknown ID returns `404`. Creating a trip does not call AI.
 
 To verify persistence, create a trip, record its ID, stop the application with
 Ctrl+C, start it again, and GET the same ID. PostgreSQL must stay available.
@@ -161,8 +161,24 @@ Provider failures or empty replies return a sanitized HTTP 502. Without the
 `ai` profile this endpoint does not exist (404). Automated tests use a fake
 local provider, so the test suite does not require Ollama or load a real model.
 
-Current lesson: [AI connection](docs/LESSON_4_AI_CONNECTION.md).
-Next step: generate a structured itinerary from a saved trip.
+## Generate an itinerary draft
+
+With the `ai` profile and Ollama running, use an existing trip ID:
+
+```bash
+curl --max-time 210 -X POST http://localhost:8080/api/v1/trips/REPLACE_WITH_ID/itinerary
+```
+
+No request body is needed: preferences come from the saved trip. HTTP 200 returns
+dated activities, estimated activity costs, and warnings. Drafts are **not saved**.
+This version supports 1–7 days inclusive (longer trips return 422). Unknown trips
+return 404; invalid, truncated or unavailable model output returns a sanitized 502.
+Generation can take a minute or more; the provider read timeout is 180 seconds.
+Activity estimates are for the whole party and exclude accommodation, intercity
+travel and unlisted meals. They are not verified prices or a complete trip quote.
+
+Current lesson: [Structured itinerary drafts](docs/LESSON_4_ITINERARY.md).
+Next step: save and retrieve a validated itinerary.
 
 ## Local development boundary
 
