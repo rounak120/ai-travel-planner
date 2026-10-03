@@ -44,6 +44,11 @@ class AiTravelPlannerApplicationTests {
         assertThat(json.containsKey("components")).isFalse();
     }
 
+    @Test
+    void aiEndpointIsAbsentWithoutAiProfile() throws Exception {
+        assertThat(get("/api/v1/ai/test").statusCode()).isEqualTo(404);
+    }
+
     private HttpResponse<String> get(String path) throws Exception {
         var request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
                 .timeout(Duration.ofSeconds(10))

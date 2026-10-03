@@ -1,4 +1,12 @@
 spring:
+  ai:
+    openai:
+      # Never use the developer's credentials in automated tests.
+      api-key: test-key-not-real
+      base-url: http://127.0.0.1:1
+      chat:
+        api-key: test-key-not-real
+        base-url: http://127.0.0.1:1
   datasource:
     # Tests must not migrate or modify the development database.
     url: ${TEST_DB_URL:jdbc:postgresql://127.0.0.1:5432/ai_travel_planner_test}

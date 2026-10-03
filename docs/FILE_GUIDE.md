@@ -1,4 +1,4 @@
-# Lessons 1–3: what each file does
+# Lessons 1–4: what each file does
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
@@ -100,3 +100,18 @@ for this lesson.
 
 The migration and the controller's API contract are unchanged. Restart
 verification is recorded in `docs/VERIFICATION.md`.
+
+## Lesson 4, step 1: AI connection
+
+- `pom.xml`: adds the Spring AI 2.0.1 BOM and OpenAI starter.
+- `src/main/resources/application-ai.yml`: opt-in chat model, key reference,
+  small output limit, timeout, and no retries. Default configuration disables models.
+- `src/main/java/com/aibot/travelplanner/ai/AiConnectionController.java`:
+  exposes POST `/api/v1/ai/test` only under the `ai` profile and sanitizes errors.
+- `src/main/java/com/aibot/travelplanner/ai/AiConnectionService.java`:
+  sends a fixed prompt through Spring AI's ChatClient and checks the reply.
+- `src/main/java/com/aibot/travelplanner/ai/AiUnavailableException.java`:
+  carries a safe error message without raw provider details.
+- `src/test/java/com/aibot/travelplanner/ai/AiConnectionTests.java`:
+  tests the full HTTP path against a local fake provider, with no real API calls.
+- `docs/LESSON_4_AI_CONNECTION.md`: explains this request flow and the manual test.

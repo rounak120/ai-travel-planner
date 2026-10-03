@@ -15,8 +15,25 @@
 	<description>AI travel planner learning project</description>
 	<properties>
 		<java.version>21</java.version>
+		<spring-ai.version>2.0.1</spring-ai.version>
 	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-bom</artifactId>
+				<version>${spring-ai.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
+		<!-- Model connection only; itinerary generation comes in a later lesson. -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-openai</artifactId>
+		</dependency>
 		<!-- Operational health endpoint: /actuator/health. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

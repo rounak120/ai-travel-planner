@@ -1,0 +1,14 @@
+spring:
+  ai:
+    model:
+      chat: openai
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        model: ${OPENAI_MODEL:gpt-5.4-mini}
+        # One short connection test, with no automatic paid retries.
+        max-completion-tokens: 128
+        reasoning-effort: none
+        timeout: 20s
+        max-retries: 0
+        store: false

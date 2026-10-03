@@ -1,5 +1,31 @@
 # Verification
 
+## Lesson 4, step 1 — verified on 2026-10-03
+
+Added Spring AI 2.0.1 and the opt-in `ai` profile for `gpt-5.4-mini`.
+
+```bash
+JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./mvnw -B -ntp -Ddebug=false test
+```
+
+Result: **BUILD SUCCESS — 49 tests, 0 failures, 0 errors, 0 skipped.**
+
+- All 42 previous persistence/API tests still pass.
+- One additional test checks the AI endpoint is absent without the profile.
+- Six AI cases exercise the real Spring AI client against a local fake HTTP
+  provider: successful response/options, sanitized 401/429/500 errors without
+  retries, empty reply, and no provider calls for GET/health.
+- Test configuration overrides both the API key and provider URL. No real
+  OpenAI requests were sent, so key validity, billing, and live model access
+  are not yet verified.
+- Confirmed `.env` is Git-ignored and mode 600; no secret value was printed.
+- Restarted the local app with `ai` active (PID 47644, port 8080). Health returned
+  UP, GET `/api/v1/ai/test` returned 405 (POST-only route exists), and the
+  previous saved trip still returned 200. The billable POST was not invoked.
+
+The app and PostgreSQL were left running. Itinerary generation, live AI
+verification, and executable JAR packaging are not included in this step.
+
 ## Lesson 3, steps 4–5 — verified on 2026-10-03
 
 `TripService` now uses a JPA repository. Hibernate validated the entity and

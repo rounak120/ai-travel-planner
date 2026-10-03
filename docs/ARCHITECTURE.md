@@ -23,6 +23,9 @@ foundation, status/health, and a create/read Trip API persisted in PostgreSQL
 through JPA. Flyway manages the tables. Boxes are responsibilities;
 they are not all separate deployment units.
 
+Lesson 4, step 1 adds an opt-in Spring AI/OpenAI connection test in package `ai`.
+It does not yet implement itinerary orchestration, structured output, or MCP.
+
 ```mermaid
 flowchart TD
     UI["Web chat and trip dashboard — later"] --> API["Spring Boot REST API"]
@@ -52,7 +55,7 @@ working feature; there are no empty placeholder implementations.
 | `system` | Application status response | Implemented |
 | `trip` | Trip details, dates, budget, traveler preferences | Create/read, validation, and PostgreSQL persistence implemented |
 | `itinerary` | Day plans, activities, validation, revisions | Planned |
-| `ai` | Conversation, prompts, model calls, MCP client, structured output | Planned |
+| `ai` | Conversation, prompts, model calls, MCP client, structured output | Connection test implemented; itinerary orchestration and MCP planned |
 | `mcp` | MCP server tool definitions and transport configuration | Planned |
 | `integration` | External weather, place, and travel API adapters | Planned |
 | `security` | Sign-in and ownership checks | Planned before shared deployment |
@@ -131,8 +134,8 @@ this plan.
 ## Version decision
 
 Lesson 1 pins Spring Boot 4.1.1 and Java 21. Spring AI's current documentation
-states that 2.0.x supports Boot 4.0.x and 4.1.x. We will recheck that compatibility
-before adding AI dependencies. Documentation reviewed on 2026-09-28:
+states that 2.0.x supports Boot 4.0.x and 4.1.x. Lesson 4 pins Spring AI 2.0.1
+and selects OpenAI `gpt-5.4-mini`. Compatibility rechecked on 2026-10-03:
 
 - [Spring Boot](https://spring.io/projects/spring-boot/)
 - [Spring Boot system requirements](https://docs.spring.io/spring-boot/system-requirements.html)
