@@ -18,6 +18,12 @@ See [the current lesson](LESSON_4_ITINERARY.md) for the request flow and rationa
 
 ## Foundation files
 
+Persistence adds `itinerary/ItineraryStore.java` for parameterized snapshot writes
+and latest reads, `SavedItineraryController.java` for AI-independent GET requests,
+and `ItineraryNotFoundException.java` for missing-plan responses. Flyway migration
+`src/main/resources/db/migration/V2__create_itineraries.sql` creates the snapshot
+table, foreign key and latest-version index. Existing V1 is unchanged.
+
 | File | Why it exists |
 | --- | --- |
 | `pom.xml` | Maven's build recipe: project coordinates, Java version, Spring Boot parent, dependencies, test setup, and executable JAR plugin. |

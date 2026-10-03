@@ -25,7 +25,8 @@ they are not all separate deployment units.
 
 Lesson 4, step 1 adds an opt-in Spring AI/Ollama connection test in package `ai`.
 Step 2 adds a structured itinerary draft endpoint with server-side validation.
-Draft persistence and MCP remain future work.
+Validated drafts are now saved as immutable PostgreSQL JSONB snapshots. A separate
+GET route reads the highest-ID saved snapshot without an AI dependency. MCP remains future work.
 
 ```mermaid
 flowchart TD
@@ -55,7 +56,7 @@ working feature; there are no empty placeholder implementations.
 | --- | --- | --- |
 | `system` | Application status response | Implemented |
 | `trip` | Trip details, dates, budget, traveler preferences | Create/read, validation, and PostgreSQL persistence implemented |
-| `itinerary` | Day plans, activities, validation, revisions | Validated drafts implemented; persistence and revisions planned |
+| `itinerary` | Day plans, activities, validation, revisions | Validated snapshots saved; latest retrieval implemented; editing/history API planned |
 | `ai` | Conversation, prompts, model calls, MCP client, structured output | Ollama connection and structured draft generation implemented; MCP planned |
 | `mcp` | MCP server tool definitions and transport configuration | Planned |
 | `integration` | External weather, place, and travel API adapters | Planned |

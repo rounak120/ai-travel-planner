@@ -1,5 +1,9 @@
 # Lesson 4, step 2: a draft from your saved trip
 
+This lesson describes the original generation milestone. The following
+[persistence milestone](LESSON_5_SAVED_ITINERARIES.md) now saves successful drafts
+and adds GET retrieval, including when the AI profile is disabled.
+
 The connection test only proved that Ollama could reply. This step gives it a
 real task: propose activities for the trip already stored in PostgreSQL.
 

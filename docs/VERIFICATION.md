@@ -1,5 +1,21 @@
 # Verification
 
+## Saved itinerary milestone (2026-10-03)
+
+- Final Maven suite: **68 tests, zero failures/errors** (`-Ddebug=false test`).
+- V2 migration applied to test and development databases; V1 left unchanged.
+- Tests cover POST/GET equality, repeated generations retaining two versions,
+  invalid generation preserving the last saved version, GET without model calls,
+  committed HTTP reads without the AI profile, transaction rollback, and the
+  database foreign key rejecting snapshots for nonexistent trips.
+- Test cleanup removes only each test's own trip rows and cascading snapshots.
+- Live Jaipur generation: HTTP 200 in 18.64 seconds. Restarted the app and read
+  the saved itinerary: HTTP 200 in 0.16 seconds, JSON equal to the POST response.
+- App left running with the `ai` profile on localhost:8080. No live places or
+  pricing verification added; plans remain unverified AI drafts, not bookings.
+
+The draft-only behavior described in older entries below is historical.
+
 ## Lesson 4, step 2 — structured itinerary drafts (2026-10-03)
 
 - `JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./mvnw -B -ntp -Ddebug=false test`

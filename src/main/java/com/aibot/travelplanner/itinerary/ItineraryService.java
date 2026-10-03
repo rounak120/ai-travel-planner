@@ -18,11 +18,13 @@ public class ItineraryService {
     private final TripService trips;
     private final ItineraryGenerator generator;
     private final Validator validator;
+    private final ItineraryStore store;
 
-    public ItineraryService(TripService trips, ItineraryGenerator generator, Validator validator) {
+    public ItineraryService(TripService trips, ItineraryGenerator generator, Validator validator, ItineraryStore store) {
         this.trips = trips;
         this.generator = generator;
         this.validator = validator;
+        this.store = store;
     }
 
     // Intentionally no transaction here: TripService's DB transaction ends before inference.
@@ -56,11 +58,11 @@ public class ItineraryService {
         if (total.compareTo(trip.budget()) > 0) {
             throw new InvalidItineraryException();
         }
-        return new ItineraryDraft(trip.id(), trip.destination(), trip.currency(), trip.budget(), total, days,
+        return store.save(new ItineraryDraft(trip.id(), trip.destination(), trip.currency(), trip.budget(), total, days,
                 List.of("AI-generated draft: verify places, opening hours and prices before travelling.",
                         "Costs are estimates for the entire travel party in " + trip.currency() + ".",
                         "Only listed activities are costed; accommodation, intercity travel and unlisted meals are excluded.",
-                        "No live weather, availability or bookings were checked. This draft has not been saved."));
+                        "No live weather, availability or bookings were checked. This is a saved AI draft, not a booking.")));
     }
 
     public static class TripTooLongException extends RuntimeException {

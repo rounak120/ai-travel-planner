@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-/** A returned draft, not a saved itinerary or a booking. Costs cover the whole party. */
+/** A validated AI draft, not a booking. Costs cover the whole party. */
 public record ItineraryDraft(
         UUID tripId,
         String destination,

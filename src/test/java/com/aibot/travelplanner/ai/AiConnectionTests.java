@@ -54,6 +54,14 @@ class AiConnectionTests {
     @MockitoBean
     private TripService trips;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @org.junit.jupiter.api.AfterEach
+    void removeOwnTrip() {
+        jdbc.update("DELETE FROM trips WHERE id = ?", TRIP_ID);
+    }
+
     private static final UUID TRIP_ID = UUID.randomUUID();
 
     private void stubTrip(int days) {
@@ -80,7 +88,10 @@ class AiConnectionTests {
         assertThat(draft.get("tripId").asText()).isEqualTo(TRIP_ID.toString());
         assertThat(draft.get("days").get(0).get("date").asText()).isEqualTo("2027-01-10");
         assertThat(draft.get("estimatedActivityCostTotal").asText()).isEqualTo("250.25");
-        assertThat(response.body()).contains("Fort visit", "not been saved", "INR");
+        assertThat(response.body()).contains("Fort visit", "saved AI draft", "INR");
+        var loaded = request("/api/v1/trips/" + TRIP_ID + "/itinerary", "GET");
+        assertThat(loaded.statusCode()).isEqualTo(200);
+        assertThat(mapper.readTree(loaded.body())).isEqualTo(draft);
         var sent = mapper.readTree(requestBody.get());
         assertThat(sent.get("format").isObject()).isTrue();
         assertThat(sent.get("think").asBoolean()).isFalse();
@@ -190,6 +201,10 @@ class AiConnectionTests {
 
     @BeforeEach
     void resetProvider() {
+        jdbc.update("""
+                INSERT INTO trips (id, destination, start_date, end_date, travelers, budget, currency, created_at)
+                VALUES (?, 'Jaipur', '2027-01-10', '2027-01-10', 2, 1000, 'INR', CURRENT_TIMESTAMP)
+                """, TRIP_ID);
         calls.set(0);
         requestBody.set(null);
         authorization.set(null);
@@ -200,6 +215,27 @@ class AiConnectionTests {
     @AfterAll
     static void stopProvider() {
         provider.stop(0);
+    }
+
+    @Test
+    void regenerationKeepsVersionsAndFailuresPreserveLastGoodDraft() throws Exception {
+        stubTrip(1);
+        String path = "/api/v1/trips/" + TRIP_ID + "/itinerary";
+        assertThat(request(path, "GET").statusCode()).isEqualTo(404);
+        assertThat(calls.get()).isZero();
+        providerBody.set(completion(itinerary(1, "20.25")));
+        assertThat(request(path, "POST").statusCode()).isEqualTo(200);
+        providerBody.set(completion(itinerary(1, "30.50")));
+        var latest = request(path, "POST");
+        assertThat(latest.statusCode()).isEqualTo(200);
+        providerBody.set(completion("invalid"));
+        assertThat(request(path, "POST").statusCode()).isEqualTo(502);
+        var loaded = request(path, "GET");
+        var mapper = JsonMapper.builder().build();
+        assertThat(mapper.readTree(loaded.body())).isEqualTo(mapper.readTree(latest.body()));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM itineraries WHERE trip_id = ?", Integer.class, TRIP_ID))
+                .isEqualTo(2);
+        assertThat(calls.get()).isEqualTo(3);
     }
 
     @Test

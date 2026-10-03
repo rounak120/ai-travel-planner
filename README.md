@@ -170,7 +170,9 @@ curl --max-time 210 -X POST http://localhost:8080/api/v1/trips/REPLACE_WITH_ID/i
 ```
 
 No request body is needed: preferences come from the saved trip. HTTP 200 returns
-dated activities, estimated activity costs, and warnings. Drafts are **not saved**.
+dated activities, estimated activity costs, and warnings. Valid drafts are saved
+in PostgreSQL before a successful response is returned. Each successful POST adds
+a version; failures leave previous versions untouched.
 This version supports 1–7 days inclusive (longer trips return 422). Unknown trips
 return 404; invalid, truncated or unavailable model output returns a sanitized 502.
 Generation can take a minute or more; the provider read timeout is 180 seconds.
@@ -178,7 +180,19 @@ Activity estimates are for the whole party and exclude accommodation, intercity
 travel and unlisted meals. They are not verified prices or a complete trip quote.
 
 Current lesson: [Structured itinerary drafts](docs/LESSON_4_ITINERARY.md).
-Next step: save and retrieve a validated itinerary.
+Read the latest saved version without calling Ollama (also works without `ai`):
+
+```bash
+curl http://localhost:8080/api/v1/trips/REPLACE_WITH_ID/itinerary
+```
+
+GET returns 404 if the trip is missing or has no saved itinerary. You can open
+the GET URL in a browser; replace the placeholder with an actual trip UUID.
+For concurrent generation, latest means highest database-assigned snapshot ID,
+not the request that started last. Older snapshots are retained but there is no
+history API yet.
+
+See [saving and reading itineraries](docs/LESSON_5_SAVED_ITINERARIES.md).
 
 ## Local development boundary
 
