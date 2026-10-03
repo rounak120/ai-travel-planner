@@ -103,8 +103,8 @@ verification is recorded in `docs/VERIFICATION.md`.
 
 ## Lesson 4, step 1: AI connection
 
-- `pom.xml`: adds the Spring AI 2.0.1 BOM and OpenAI starter.
-- `src/main/resources/application-ai.yml`: opt-in chat model, key reference,
+- `pom.xml`: adds the Spring AI 2.0.1 BOM and Ollama starter.
+- `src/main/resources/application-ai.yml`: opt-in local chat model and URL,
   small output limit, timeout, and no retries. Default configuration disables models.
 - `src/main/java/com/aibot/travelplanner/ai/AiConnectionController.java`:
   exposes POST `/api/v1/ai/test` only under the `ai` profile and sanitizes errors.

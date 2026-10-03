@@ -9,7 +9,8 @@ and an opt-in AI connection test.** Itinerary generation, MCP, live travel data,
 and the chat UI are planned features.
 **Trips are now stored in PostgreSQL and survive application restarts.**
 Spring Data JPA handles storage, and Flyway manages the database schema.
-The trip API needs no paid service. The optional AI endpoint uses a paid OpenAI API key.
+Both the trip API and local AI endpoint need no paid API service or AI key.
+Ollama runs the downloaded model on your Mac, using its memory and compute.
 
 ## Stack
 
@@ -18,7 +19,7 @@ The trip API needs no paid service. The optional AI endpoint uses a paid OpenAI 
 - Maven **3.9.16**, downloaded by the included Maven Wrapper
 - Spring MVC for HTTP/JSON; Actuator for health; JUnit and AssertJ for tests
 - PostgreSQL **17**; Spring Data JPA infrastructure; Flyway schema migrations
-- Spring AI **2.0.1** with OpenAI **gpt-5.4-mini**, enabled only with the `ai` profile
+- Spring AI **2.0.1** with Ollama **qwen3:4b**, enabled only with the `ai` profile
 
 The scaffold was generated with Spring Initializr and then customized.
 Spring AI 2.0.x supports Spring Boot 4.0.x/4.1.x.
@@ -134,14 +135,22 @@ Trips from the former in-memory implementation are not automatically migrated.
 
 ## Optional AI connection test
 
-Add `OPENAI_API_KEY` to your ignored `.env` file, then stop the old app and run:
+Install Ollama once with `brew install ollama`. Start it in a separate terminal
+with cloud features disabled and loopback-only access:
 
 ```bash
+OLLAMA_NO_CLOUD=1 OLLAMA_HOST=127.0.0.1:11434 ollama serve
+```
+
+Download the model once (about 2.5 GB), then start the app with AI enabled:
+
+```bash
+ollama pull qwen3:4b
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=ai
 ```
 
-Starting the app and checking health do not send AI requests. The following
-explicit POST makes one potentially billable request (no automatic retries):
+Stop any old app before reusing port 8080. No API key is needed. Starting the
+app and checking health do not generate text. This POST runs the local model:
 
 ```bash
 curl -i -X POST http://localhost:8080/api/v1/ai/test
@@ -150,7 +159,7 @@ curl -i -X POST http://localhost:8080/api/v1/ai/test
 Expected: HTTP 200 with a `message` containing the model's short reply.
 Provider failures or empty replies return a sanitized HTTP 502. Without the
 `ai` profile this endpoint does not exist (404). Automated tests use a fake
-local provider and fake key; no API credits are used.
+local provider, so the test suite does not require Ollama or load a real model.
 
 Current lesson: [AI connection](docs/LESSON_4_AI_CONNECTION.md).
 Next step: generate a structured itinerary from a saved trip.
@@ -159,7 +168,7 @@ Next step: generate a structured itinerary from a saved trip.
 
 This starter binds to `127.0.0.1` and has no authentication. Authentication and
 authorization must be added before deploying user-specific travel features.
-Do not expose the billable AI endpoint publicly. Only Actuator health is exposed.
+Do not expose the AI endpoint or Ollama publicly. Only Actuator health is exposed.
 Keep provider keys in environment
 variables; do not commit them. `.env` files are ignored by Git and are now
 explicitly imported by `application.yml` as Java properties. Use unquoted values

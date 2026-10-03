@@ -32,7 +32,7 @@
 		<!-- Model connection only; itinerary generation comes in a later lesson. -->
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
-			<artifactId>spring-ai-starter-model-openai</artifactId>
+			<artifactId>spring-ai-starter-model-ollama</artifactId>
 		</dependency>
 		<!-- Operational health endpoint: /actuator/health. -->
 		<dependency>

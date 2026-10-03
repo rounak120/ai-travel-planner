@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** Exercises the real Spring AI HTTP client against a local fake, never OpenAI. */
+/** Exercises the real Spring AI HTTP client against a fake, never the real model. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"ai", "test"})
 class AiConnectionTests {
@@ -44,7 +44,7 @@ class AiConnectionTests {
     private static HttpServer startProvider() {
         try {
             var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-            server.createContext("/v1/chat/completions", exchange -> {
+            server.createContext("/api/chat", exchange -> {
                 calls.incrementAndGet();
                 requestBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
                 authorization.set(exchange.getRequestHeaders().getFirst("Authorization"));
@@ -66,12 +66,9 @@ class AiConnectionTests {
 
     @DynamicPropertySource
     static void useLocalProvider(DynamicPropertyRegistry registry) {
-        String baseUrl = "http://127.0.0.1:" + provider.getAddress().getPort() + "/v1";
-        registry.add("spring.ai.openai.base-url", () -> baseUrl);
-        registry.add("spring.ai.openai.chat.base-url", () -> baseUrl);
-        registry.add("spring.ai.openai.api-key", () -> "test-key-not-real");
-        registry.add("spring.ai.openai.chat.api-key", () -> "test-key-not-real");
-        registry.add("spring.ai.openai.chat.model", () -> "gpt-5.4-mini");
+        String baseUrl = "http://127.0.0.1:" + provider.getAddress().getPort();
+        registry.add("spring.ai.ollama.base-url", () -> baseUrl);
+        registry.add("spring.ai.ollama.chat.model", () -> "qwen3:4b");
     }
 
     @BeforeEach
@@ -96,29 +93,29 @@ class AiConnectionTests {
         assertThat(mapper.readTree(response.body()).get("message").asText())
                 .isEqualTo("Travel planner AI connection is working.");
         var sent = mapper.readTree(requestBody.get());
-        assertThat(sent.get("model").asText()).isEqualTo("gpt-5.4-mini");
-        assertThat(sent.get("max_completion_tokens").asInt()).isEqualTo(128);
-        assertThat(sent.get("reasoning_effort").asText()).isEqualTo("none");
-        assertThat(sent.get("store").asBoolean()).isFalse();
-        assertThat(sent.has("max_tokens")).isFalse();
+        assertThat(sent.get("model").asText()).isEqualTo("qwen3:4b");
+        assertThat(sent.get("options").get("num_predict").asInt()).isEqualTo(512);
+        assertThat(sent.get("options").get("num_ctx").asInt()).isEqualTo(4096);
+        assertThat(sent.get("think").asBoolean()).isTrue();
+        assertThat(sent.get("stream").asBoolean()).isFalse();
         assertThat(sent.get("messages").toString()).contains("Travel planner AI connection is working.");
-        assertThat(authorization.get()).isEqualTo("Bearer test-key-not-real");
+        assertThat(authorization.get()).isNull();
         assertThat(calls.get()).isEqualTo(1);
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {401, 429, 500})
+    @ValueSource(ints = {404, 429, 500})
     void sanitizesProviderFailuresWithoutRetries(int status) throws Exception {
         providerStatus.set(status);
         providerBody.set("""
-                {"error":{"message":"sensitive-provider-detail","type":"api_error","code":"test_error"}}
+                {"error":"sensitive-provider-detail"}
                 """);
         var response = request("/api/v1/ai/test", "POST");
         assertThat(response.statusCode()).isEqualTo(502);
         assertThat(response.headers().firstValue("content-type").orElse(""))
                 .startsWith("application/problem+json");
         assertThat(response.body()).contains("AI provider unavailable")
-                .doesNotContain("sensitive-provider-detail", "test-key-not-real");
+                .doesNotContain("sensitive-provider-detail", "API key", "API quota");
         assertThat(calls.get()).isEqualTo(1);
     }
 
@@ -130,6 +127,16 @@ class AiConnectionTests {
     }
 
     @Test
+    void returnsOnlyAnswerNotSeparateThinking() throws Exception {
+        providerBody.set(completion("Travel planner AI connection is working.")
+                .replace("\"role\":\"assistant\"", "\"role\":\"assistant\",\"thinking\":\"internal-test-reasoning\""));
+        var response = request("/api/v1/ai/test", "POST");
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("Travel planner AI connection is working.")
+                .doesNotContain("internal-test-reasoning", "thinking");
+    }
+
+    @Test
     void getAndHealthNeverCallTheProvider() throws Exception {
         assertThat(request("/api/v1/ai/test", "GET").statusCode()).isEqualTo(405);
         assertThat(request("/actuator/health", "GET").statusCode()).isEqualTo(200);
@@ -138,10 +145,10 @@ class AiConnectionTests {
 
     private static String completion(String content) {
         return """
-                {"id":"chatcmpl-local-test","object":"chat.completion","created":1,
-                 "model":"gpt-5.4-mini",
-                 "choices":[{"index":0,"message":{"role":"assistant","content":"%s"},"finish_reason":"stop"}],
-                 "usage":{"prompt_tokens":15,"completion_tokens":8,"total_tokens":23}}
+                {"model":"qwen3:4b","created_at":"2026-10-03T07:00:00Z",
+                 "message":{"role":"assistant","content":"%s"},
+                 "done":true,"done_reason":"stop","total_duration":1000000,
+                 "prompt_eval_count":15,"eval_count":8}
                 """.formatted(content);
     }
 

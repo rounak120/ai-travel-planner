@@ -1,6 +1,46 @@
 # Verification
 
-## Lesson 4, step 1 — verified on 2026-10-03
+## Lesson 4 — switched to local Ollama on 2026-10-03
+
+Installed Ollama 0.35.1 with Homebrew and downloaded `qwen3:4b`
+(ID `359d7dd4bcda`, about 2.5 GB). The Mac has an M1 Pro and 32 GB RAM.
+Ollama was started on `127.0.0.1:11434` with `OLLAMA_NO_CLOUD=1`; its log
+confirmed cloud features are disabled. It is not configured to start at login.
+
+Replaced the OpenAI starter with the Ollama starter. Maven's dependency tree
+confirmed the Ollama starter is present and no OpenAI SDK/starter remains.
+The existing ignored `.env` was not modified; its old OpenAI key is unused.
+
+```bash
+JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./mvnw -B -ntp -Ddebug=false test
+```
+
+Result: **BUILD SUCCESS — 50 tests, 0 failures, 0 errors, 0 skipped.**
+
+- Seven AI cases use a local fake Ollama endpoint, not a loaded model. They
+  verify the model/settings, no Authorization header, success/empty output,
+  sanitized 404/429/500 failures with no retries, separate thinking excluded
+  from the response, and no model calls for GET/health.
+- Corrected the retry setting after a failing test exposed that Spring AI
+  2.0.1 maps `max-attempts` to retries after the initial call. Zero means one call.
+- Live testing found the current `qwen3:4b` tag is the thinking variant.
+  `think: true` separates reasoning from final text. Increased the local token
+  cap from 128 to 512 because reasoning sometimes exhausted 128 before an answer.
+- Restarted the app on port 8080 with the `ai` profile (final PID 51119).
+- Real POST `/api/v1/ai/test` returned HTTP 200 with exactly:
+  `{"message":"Travel planner AI connection is working."}`.
+- `ollama ps` showed 100% GPU usage, approximately 3.2 GB model memory, and a
+  4096-token context. Health and retrieval of the existing sample trip passed.
+- No OpenAI requests or API charges were involved in this migration.
+
+Netty emits a native macOS DNS-resolver fallback warning. Loopback requests,
+the real model call, and all tests succeeded; the optional native resolver
+dependency was not added. Itinerary generation and packaging are not yet tested.
+
+Both the app and local Ollama server were left running, alongside PostgreSQL.
+Restart commands are in `docs/LESSON_4_AI_CONNECTION.md`.
+
+## Lesson 4, step 1 — original OpenAI setup, verified on 2026-10-03
 
 Added Spring AI 2.0.1 and the opt-in `ai` profile for `gpt-5.4-mini`.
 

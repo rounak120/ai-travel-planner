@@ -19,7 +19,7 @@ public class AiConnectionController {
         this.service = service;
     }
 
-    // POST makes the potentially billable operation explicit; health checks never call it.
+    // POST makes model computation explicit; health checks never call it.
     @PostMapping("/test")
     public AiConnectionResponse testConnection() {
         return new AiConnectionResponse(service.testConnection());

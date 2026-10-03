@@ -1,14 +1,27 @@
 spring:
   ai:
     model:
-      chat: openai
-    openai:
-      api-key: ${OPENAI_API_KEY}
+      chat: ollama
+    retry:
+      # Spring AI 2 counts retries after the initial request: zero means one call.
+      max-attempts: 0
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
+      init:
+        # Download explicitly once, never as a side effect of app startup.
+        pull-model-strategy: never
       chat:
-        model: ${OPENAI_MODEL:gpt-5.4-mini}
-        # One short connection test, with no automatic paid retries.
-        max-completion-tokens: 128
-        reasoning-effort: none
-        timeout: 20s
-        max-retries: 0
-        store: false
+        model: ${OLLAMA_MODEL:qwen3:4b}
+        # Bound memory/output for this short local connection test.
+        num-ctx: 4096
+        # Includes thinking tokens; 128 can end before the final answer starts.
+        num-predict: 512
+        # This tag is a thinking model; Ollama separates reasoning from answer text.
+        think: true
+        temperature: 0.2
+        keep-alive: 5m
+  http:
+    client:
+      connect-timeout: 5s
+      # A cold local model load can take longer than a hosted request.
+      read-timeout: 120s
