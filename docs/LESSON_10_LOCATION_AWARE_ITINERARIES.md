@@ -1,5 +1,9 @@
 # Make the itinerary use the selected place
 
+Update: [weather-aware generation](LESSON_11_WEATHER_AWARE_ITINERARIES.md) now also
+supplies eligible forecast data. The original milestone description below predates
+that integration.
+
 Previously, choosing a location affected weather lookup, but the AI still saw
 only the trip's original destination text. This could make the two features plan
 for different places. New itinerary generation now uses the selected place if

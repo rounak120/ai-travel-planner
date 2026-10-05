@@ -55,6 +55,12 @@ class AiConnectionTests {
     @MockitoBean
     private TripService trips;
 
+    @MockitoBean
+    private com.aibot.travelplanner.weather.WeatherClient weatherClient;
+
+    @MockitoBean
+    private java.time.Clock clock;
+
     @org.springframework.beans.factory.annotation.Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
@@ -97,6 +103,8 @@ class AiConnectionTests {
         assertThat(draft.get("estimatedActivityCostTotal").asText()).isEqualTo("250.25");
         assertThat(response.body()).contains("Fort visit", "saved AI draft", "INR");
         assertThat(draft.get("selectedLocation").isNull()).isTrue();
+        assertThat(draft.get("weatherContext").get("status").asText()).isEqualTo("NO_LOCATION");
+        org.mockito.Mockito.verifyNoInteractions(weatherClient);
         assertThat(response.body()).contains("unverified destination text");
         var loaded = request("/api/v1/trips/" + TRIP_ID + "/itinerary", "GET");
         assertThat(loaded.statusCode()).isEqualTo(200);
@@ -131,6 +139,8 @@ class AiConnectionTests {
         var mapper = JsonMapper.builder().build();
         var result = mapper.readValue(response.body(), com.aibot.travelplanner.itinerary.ItineraryDraft.class);
         assertThat(result.selectedLocation()).isEqualTo(first);
+        assertThat(result.weatherContext().status()).isEqualTo(com.aibot.travelplanner.weather.PlanningWeather.Status.UNSUPPORTED);
+        org.mockito.Mockito.verifyNoInteractions(weatherClient);
         assertThat(result.destination()).isEqualTo("Paris");
         assertThat(locations.find(TRIP_ID).orElseThrow()).isEqualTo(second);
         var messages = mapper.readTree(requestBody.get()).get("messages");
@@ -145,6 +155,10 @@ class AiConnectionTests {
         assertThat(request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST").statusCode()).isEqualTo(200);
         assertThat(itineraries.get(TRIP_ID).selectedLocation()).isEqualTo(second);
         assertThat(itineraries.getVersion(TRIP_ID, oldId).itinerary().selectedLocation()).isEqualTo(first);
+        jdbc.update("UPDATE itineraries SET document = document - 'weatherContext' WHERE id = ? AND trip_id = ?", oldId, TRIP_ID);
+        var legacy = itineraries.getVersion(TRIP_ID, oldId).itinerary();
+        assertThat(legacy.selectedLocation()).isEqualTo(first);
+        assertThat(legacy.weatherContext()).isNull();
     }
 
     private com.aibot.travelplanner.destination.SelectedDestination selectedLocation(
@@ -152,6 +166,63 @@ class AiConnectionTests {
         return new com.aibot.travelplanner.destination.SelectedDestination(TRIP_ID,
                 new com.aibot.travelplanner.destination.DestinationSearch.Place(id, name, country, code,
                         null, 48.85, 2.35, zone), "Test provider attribution", "https://example.invalid/", Instant.parse("2026-10-05T10:00:00Z"));
+    }
+
+    @Test
+    void suppliesForecastAndPersistsOriginalContextAcrossLocationChangesAndLaterFailures() throws Exception {
+        var date = LocalDate.of(2026, 10, 6);
+        when(trips.get(TRIP_ID)).thenReturn(new Trip(TRIP_ID, "Paris", date, date, 2,
+                new BigDecimal("1000.00"), "INR", List.of("history"), Instant.now()));
+        var first = selectedLocation(100, "Paris", "France", "FR", "Europe/Paris");
+        var second = selectedLocation(200, "Paris", "United States", "US", "America/Chicago");
+        locations.save(first);
+        var measurements = List.of(new com.aibot.travelplanner.weather.TripWeather.Day(date, null, 30.0, 12.5));
+        when(weatherClient.forecast(first.place(), date, date)).thenAnswer(invocation -> {
+            locations.save(second); // Simulate a change while the weather request runs.
+            return measurements;
+        });
+        providerBody.set(completion(itinerary(1, "20.25")));
+        String path = "/api/v1/trips/" + TRIP_ID + "/itinerary";
+        var response = request(path, "POST");
+        assertThat(response.statusCode()).isEqualTo(200);
+        var mapper = JsonMapper.builder().build();
+        var draft = mapper.readValue(response.body(), com.aibot.travelplanner.itinerary.ItineraryDraft.class);
+        assertThat(draft.weatherContext().status()).isEqualTo(com.aibot.travelplanner.weather.PlanningWeather.Status.AVAILABLE);
+        assertThat(draft.weatherContext().forecast().location()).isEqualTo(first.place());
+        assertThat(draft.weatherContext().forecast().days()).isEqualTo(measurements);
+        assertThat(draft.selectedLocation()).isEqualTo(first);
+        var messages = mapper.readTree(requestBody.get()).get("messages");
+        var input = mapper.readTree(messages.get(messages.size() - 1).get("content").asText());
+        assertThat(input.get("weather").get("status").asText()).isEqualTo("AVAILABLE");
+        assertThat(input.get("weather").get("days").get(0).get("minimumTemperatureCelsius").isNull()).isTrue();
+        assertThat(input.get("weather").toString()).contains("12.5", "2026-10-06", "fetchedAt").doesNotContain(TRIP_ID.toString());
+        assertThat(draft.warnings().toString()).contains("Forecast supplied").doesNotContain("No live weather");
+        long version = itineraries.history(TRIP_ID, null, 1).versions().getFirst().id();
+        assertThat(mapper.readTree(request(path, "GET").body())).isEqualTo(mapper.readTree(response.body()));
+        org.mockito.Mockito.verify(weatherClient, org.mockito.Mockito.times(1)).forecast(first.place(), date, date);
+
+        when(weatherClient.forecast(second.place(), date, date)).thenThrow(new com.aibot.travelplanner.weather.WeatherUnavailableException());
+        assertThat(request(path, "POST").statusCode()).isEqualTo(200);
+        var fallback = itineraries.get(TRIP_ID);
+        assertThat(fallback.weatherContext().status()).isEqualTo(com.aibot.travelplanner.weather.PlanningWeather.Status.UNAVAILABLE);
+        assertThat(fallback.weatherContext().forecast()).isNull();
+        assertThat(fallback.warnings().toString()).contains("No forecast used");
+        assertThat(itineraries.getVersion(TRIP_ID, version).itinerary().weatherContext()).isEqualTo(draft.weatherContext());
+        assertThat(requestBody.get()).doesNotContain("12.5");
+    }
+
+    @Test
+    void forecastSuccessCannotMakeInvalidAiOutputPersist() throws Exception {
+        var date = LocalDate.of(2026, 10, 6);
+        when(trips.get(TRIP_ID)).thenReturn(new Trip(TRIP_ID, "Paris", date, date, 2,
+                new BigDecimal("1000.00"), "INR", List.of("history"), Instant.now()));
+        var selected = selectedLocation(100, "Paris", "France", "FR", "Europe/Paris");
+        locations.save(selected);
+        when(weatherClient.forecast(selected.place(), date, date)).thenReturn(
+                List.of(new com.aibot.travelplanner.weather.TripWeather.Day(date, 20.0, 30.0, 0.0)));
+        providerBody.set(completion("invalid"));
+        assertThat(request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST").statusCode()).isEqualTo(502);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM itineraries WHERE trip_id = ?", Integer.class, TRIP_ID)).isZero();
     }
 
     @ParameterizedTest
@@ -248,6 +319,10 @@ class AiConnectionTests {
 
     @BeforeEach
     void resetProvider() {
+        var now = Instant.parse("2026-10-05T10:00:00Z");
+        when(clock.instant()).thenReturn(now);
+        when(clock.withZone(org.mockito.ArgumentMatchers.any(java.time.ZoneId.class)))
+                .thenAnswer(invocation -> java.time.Clock.fixed(now, invocation.getArgument(0)));
         duringModelCall.set(null);
         jdbc.update("""
                 INSERT INTO trips (id, destination, start_date, end_date, travelers, budget, currency, created_at)

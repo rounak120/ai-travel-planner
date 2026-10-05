@@ -1,6 +1,7 @@
 package com.aibot.travelplanner.itinerary;
 
 import com.aibot.travelplanner.destination.SelectedDestination;
+import com.aibot.travelplanner.weather.PlanningWeather;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,7 +17,8 @@ public record ItineraryDraft(
         BigDecimal estimatedActivityCostTotal,
         List<Day> days,
         List<String> warnings,
-        SelectedDestination selectedLocation
+        SelectedDestination selectedLocation,
+        PlanningWeather weatherContext
 ) {
     public ItineraryDraft {
         days = List.copyOf(days);
@@ -26,7 +28,7 @@ public record ItineraryDraft(
     // Existing callers and pre-location JSON snapshots remain supported.
     public ItineraryDraft(UUID tripId, String destination, String currency, BigDecimal tripBudget,
             BigDecimal estimatedActivityCostTotal, List<Day> days, List<String> warnings) {
-        this(tripId, destination, currency, tripBudget, estimatedActivityCostTotal, days, warnings, null);
+        this(tripId, destination, currency, tripBudget, estimatedActivityCostTotal, days, warnings, null, null);
     }
 
     public record Day(int dayNumber, LocalDate date, List<GeneratedItinerary.Activity> activities,

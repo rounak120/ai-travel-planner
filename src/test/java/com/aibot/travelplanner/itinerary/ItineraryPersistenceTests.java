@@ -43,8 +43,9 @@ class ItineraryPersistenceTests {
                     List.of("Unverified estimate"));
             store.save(draft);
             // Simulate JSON written before selectedLocation was added to the response record.
-            jdbc.update("UPDATE itineraries SET document = document - 'selectedLocation' WHERE trip_id = ?", trip.id());
+            jdbc.update("UPDATE itineraries SET document = document - 'selectedLocation' - 'weatherContext' WHERE trip_id = ?", trip.id());
             assertThat(store.get(trip.id()).selectedLocation()).isNull();
+            assertThat(store.get(trip.id()).weatherContext()).isNull();
             assertThatThrownBy(() -> new TransactionTemplate(transactions).executeWithoutResult(tx -> {
                 store.save(draft);
                 throw new IllegalStateException("rollback test");

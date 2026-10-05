@@ -2,6 +2,12 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+Weather-aware planning adds `weather/PlanningWeather.java` for forecast status
+and snapshot. `WeatherService.forPlanning` reuses captured trip/location data;
+`ItineraryService` calls it before AI; `ItineraryGenerator` supplies the resulting
+context; `ItineraryDraft.weatherContext` retains it in each saved version. See
+[the lesson](LESSON_11_WEATHER_AWARE_ITINERARIES.md).
+
 Location-aware generation updates `ItineraryService` to read a selection once,
 `ItineraryGenerator` to include geographic context, and `ItineraryDraft` to keep
 the selection with each version. Legacy JSON without the new field is supported.

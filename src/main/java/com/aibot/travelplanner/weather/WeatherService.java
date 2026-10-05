@@ -2,6 +2,8 @@ package com.aibot.travelplanner.weather;
 
 import com.aibot.travelplanner.destination.TripLocationService;
 import com.aibot.travelplanner.trip.TripService;
+import com.aibot.travelplanner.trip.Trip;
+import com.aibot.travelplanner.destination.SelectedDestination;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -25,7 +27,30 @@ public class WeatherService {
 
     public TripWeather get(UUID tripId) {
         var trip = trips.get(tripId);
-        var place = locations.get(tripId).place();
+        return forecast(trip, locations.get(tripId));
+    }
+
+    /** Uses the captured location, never re-reads it during itinerary generation. */
+    public PlanningWeather forPlanning(Trip trip, SelectedDestination selected) {
+        if (selected == null) {
+            return new PlanningWeather(PlanningWeather.Status.NO_LOCATION, null,
+                    "No forecast used: select a location to enable weather-aware planning.");
+        }
+        try {
+            return new PlanningWeather(PlanningWeather.Status.AVAILABLE, forecast(trip, selected),
+                    "Forecast supplied to the AI for these trip dates. Predictions may change; null measurements are unavailable.");
+        } catch (ResponseStatusException exception) {
+            if (exception.getStatusCode().value() != 422) throw exception;
+            return new PlanningWeather(PlanningWeather.Status.UNSUPPORTED, null,
+                    "No forecast used: " + exception.getReason());
+        } catch (WeatherUnavailableException exception) {
+            return new PlanningWeather(PlanningWeather.Status.UNAVAILABLE, null,
+                    "No forecast used: the weather provider was unavailable or returned invalid data.");
+        }
+    }
+
+    private TripWeather forecast(Trip trip, SelectedDestination selected) {
+        var place = selected.place();
         ZoneId zone;
         try {
             zone = ZoneId.of(place.timezone());
@@ -41,10 +66,10 @@ public class WeatherService {
                             + " in " + zone + ". No forecast is available here for the full trip yet or its dates are past.");
         }
         var days = client.forecast(place, trip.startDate(), trip.endDate());
-        return new TripWeather(tripId, place, zone.getId(), clock.instant(), days,
+        return new TripWeather(trip.id(), place, zone.getId(), clock.instant(), days,
                 "Weather data: Open-Meteo (CC BY 4.0). Location data: GeoNames via Open-Meteo.", "https://open-meteo.com/",
                 List.of("Forecasts may change; recheck near departure. This is not a weather alert service.",
                         "Null values mean unavailable forecast data, not zero. Precipitation includes rain and snow water equivalent.",
-                        "Forecast is for the selected location and exact trip dates; no itinerary was changed."));
+                        "Forecast is for the selected location and exact trip dates; it does not verify activities."));
     }
 }

@@ -1,5 +1,9 @@
 # Weather for the selected location and trip dates
 
+Update: the standalone GET behavior below remains unchanged, while
+[weather-aware generation](LESSON_11_WEATHER_AWARE_ITINERARIES.md) now reuses this
+service to supply an optional forecast to new itinerary generations.
+
 We now have a saved trip and a selected geographic location. This milestone adds
 `GET /api/v1/trips/{tripId}/weather`, using those two inputs to fetch a forecast.
 It is separate from the AI itinerary: no generated text, bookings or automatic

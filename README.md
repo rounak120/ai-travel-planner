@@ -284,12 +284,34 @@ timeout pattern and non-commercial provider usage limits apply.
 
 Weather lesson: [Trip weather](docs/LESSON_9_TRIP_WEATHER.md).
 
-Current lesson: [Location-aware itinerary generation](docs/LESSON_10_LOCATION_AWARE_ITINERARIES.md).
+Location lesson: [Location-aware itinerary generation](docs/LESSON_10_LOCATION_AWARE_ITINERARIES.md).
 The existing POST `/api/v1/trips/{id}/itinerary` now includes selected geographic
 context in the AI request. When selected, the response's `destination` is the
 provider place name; country/region/coordinates and attribution are preserved in
-`selectedLocation`. Older versions without that field read it as null. Weather
-is still a separate endpoint and is not automatically included in the AI prompt.
+`selectedLocation`. Older versions without that field read it as null.
+
+## Weather-aware itinerary generation
+
+The existing itinerary POST now attempts one forecast lookup for a selected
+location and eligible trip dates before asking Ollama to plan. The model receives
+dated daily measurements, including nulls for missing data; it is instructed not
+to invent hourly weather or forecasts when none were provided.
+
+The saved `weatherContext` records status, message, and the forecast snapshot
+(including source and fetch time) when available:
+
+- `AVAILABLE`: a validated forecast was supplied to the model.
+- `NO_LOCATION`: no selection, so no weather request was made.
+- `UNSUPPORTED`: dates/timezone unsuitable; no weather request was made.
+- `UNAVAILABLE`: the provider failed or returned invalid data; planning continued.
+
+Weather failure does not block planning, but invalid AI output still does. Saved
+GET/history reads never refresh weather or regenerate activities. Old versions
+without `weatherContext` return null: they do not acquire a forecast retroactively.
+GET `/weather` remains available for a fresh lookup and retains its 404/422/502
+errors; unlike generation it does not have a fallback plan to return.
+
+Current lesson: [Weather-aware itinerary generation](docs/LESSON_11_WEATHER_AWARE_ITINERARIES.md).
 
 ## Local development boundary
 

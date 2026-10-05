@@ -3,6 +3,7 @@ package com.aibot.travelplanner.itinerary;
 import com.aibot.travelplanner.ai.ItineraryGenerator;
 import com.aibot.travelplanner.trip.TripService;
 import com.aibot.travelplanner.destination.TripLocationStore;
+import com.aibot.travelplanner.weather.WeatherService;
 import jakarta.validation.Validator;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -21,14 +22,16 @@ public class ItineraryService {
     private final Validator validator;
     private final ItineraryStore store;
     private final TripLocationStore locations;
+    private final WeatherService weather;
 
     public ItineraryService(TripService trips, ItineraryGenerator generator, Validator validator, ItineraryStore store,
-            TripLocationStore locations) {
+            TripLocationStore locations, WeatherService weather) {
         this.trips = trips;
         this.generator = generator;
         this.validator = validator;
         this.store = store;
         this.locations = locations;
+        this.weather = weather;
     }
 
     // Intentionally no transaction here: TripService's DB transaction ends before inference.
@@ -41,7 +44,8 @@ public class ItineraryService {
         // Read once: prompt and saved provenance must use the same location snapshot,
         // even if another request changes the trip's selection while the model runs.
         var selected = locations.find(tripId).orElse(null);
-        var generated = generator.generate(trip, selected);
+        var weatherContext = weather.forPlanning(trip, selected);
+        var generated = generator.generate(trip, selected, weatherContext);
         if (generated == null || !validator.validate(generated).isEmpty()
                 || generated.days().size() != dayCount) {
             throw new InvalidItineraryException();
@@ -70,10 +74,11 @@ public class ItineraryService {
                 List.of("AI-generated draft: verify places, opening hours and prices before travelling.",
                         "Costs are estimates for the entire travel party in " + trip.currency() + ".",
                         "Only listed activities are costed; accommodation, intercity travel and unlisted meals are excluded.",
-                        "No live weather, availability or bookings were checked. This is a saved AI draft, not a booking.",
+                        "No live availability or bookings were checked. This is a saved AI draft, not a booking.",
+                        weatherContext.message(),
                         selected == null ? "No location was selected; this plan uses the trip's unverified destination text."
                                 : "This plan uses the saved selected location shown in selectedLocation. Attractions remain unverified."),
-                selected));
+                selected, weatherContext));
     }
 
     public static class TripTooLongException extends RuntimeException {

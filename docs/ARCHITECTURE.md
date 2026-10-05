@@ -35,7 +35,9 @@ location using the V3 `trip_locations` table. New itinerary generation now uses
 that selected location and snapshots it with the saved plan. It does not verify
 attractions or call MCP. A separate GET `/api/v1/trips/{tripId}/weather`
 now uses the selected coordinates and exact trip dates within a guarded 16-day
-window. It does not feed the AI prompt or modify itineraries.
+window. New itinerary generation now optionally supplies that forecast to the AI
+and saves its source/time/data as `weatherContext`; missing forecasts are explicit
+fallback statuses. Standalone weather GET does not modify existing itineraries.
 
 ```mermaid
 flowchart TD

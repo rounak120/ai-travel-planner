@@ -1,5 +1,24 @@
 # Verification
 
+## Weather-aware itinerary milestone (2026-10-05)
+
+- Final Maven suite: **136 tests, zero failures/errors** (`-Ddebug=false test`).
+- Generation tests inspect the real Spring AI request against a fake model;
+  weather transport remains covered by the existing fake HTTP provider suite.
+- Available dated forecasts, null readings, and fetch timestamps enter the prompt
+  without database trip IDs. A simulated location change during weather lookup
+  does not change the location/forecast snapshot used by that generation.
+- Provider failure still yields a validated plan with UNAVAILABLE and no forecast;
+  missing selection/date-window cases produce NO_LOCATION/UNSUPPORTED without a
+  weather call. Invalid AI output after successful weather lookup saves nothing.
+- Saved GET and old-version retrieval retain the original weather data. Old JSON
+  lacking weatherContext remains readable, including location-aware snapshots.
+- Live POST for Jaipur demo `e99200d3-6d19-4578-ac4f-20cef94fe41c` returned HTTP 200
+  in 11.89 seconds with AVAILABLE and a two-day October 6–7 forecast. Saved GET
+  matched the complete response, including provider attribution and fetchedAt.
+  One new itinerary version was saved; existing versions/locations were unchanged.
+- No schema/dependency changes. App restarted with the AI profile on localhost:8080.
+
 ## Location-aware itinerary milestone (2026-10-05)
 
 - Maven suite: **134 tests, zero failures/errors** (`-Ddebug=false test`).
