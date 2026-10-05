@@ -255,7 +255,11 @@ saved location without external calls. Provider failure (502) or an ID no longer
 in the results (422) preserves the prior selection; invalid input returns 400.
 GET returns 404 for a missing trip or a trip without a selected location.
 
-This does not modify the original trip text, existing itineraries or AI prompts.
+This does not modify the original trip text or existing itineraries. New itinerary
+generations now use the current selected location when one exists and retain it
+in the returned/saved `selectedLocation` field. Without a selection, generation
+uses the original text with an explicit warning. Changing a selection does not
+retroactively change old itinerary versions.
 Selection lesson:
 [Selected trip location](docs/LESSON_8_SELECTED_LOCATION.md).
 
@@ -278,7 +282,14 @@ AI call or itinerary update. The provider receives coordinates, dates and timezo
 not the trip ID, budget, travelers or interests. The existing five-second network
 timeout pattern and non-commercial provider usage limits apply.
 
-Current lesson: [Trip weather](docs/LESSON_9_TRIP_WEATHER.md).
+Weather lesson: [Trip weather](docs/LESSON_9_TRIP_WEATHER.md).
+
+Current lesson: [Location-aware itinerary generation](docs/LESSON_10_LOCATION_AWARE_ITINERARIES.md).
+The existing POST `/api/v1/trips/{id}/itinerary` now includes selected geographic
+context in the AI request. When selected, the response's `destination` is the
+provider place name; country/region/coordinates and attribution are preserved in
+`selectedLocation`. Older versions without that field read it as null. Weather
+is still a separate endpoint and is not automatically included in the AI prompt.
 
 ## Local development boundary
 

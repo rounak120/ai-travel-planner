@@ -31,8 +31,9 @@ GET route reads the highest-ID saved snapshot without an AI dependency. MCP rema
 The `destination` package now adds a direct, read-only Open-Meteo geocoding
 integration via `GET /api/v1/destinations?name=...`. It returns candidate locations;
 PUT/GET `/api/v1/trips/{tripId}/location` now persist a selected provider-backed
-location using the V3 `trip_locations` table. This does not yet feed the AI prompt,
-verify attractions or call MCP. A separate GET `/api/v1/trips/{tripId}/weather`
+location using the V3 `trip_locations` table. New itinerary generation now uses
+that selected location and snapshots it with the saved plan. It does not verify
+attractions or call MCP. A separate GET `/api/v1/trips/{tripId}/weather`
 now uses the selected coordinates and exact trip dates within a guarded 16-day
 window. It does not feed the AI prompt or modify itineraries.
 

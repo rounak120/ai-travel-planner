@@ -46,6 +46,7 @@ class AiConnectionTests {
     private static final AtomicReference<String> providerBody = new AtomicReference<>();
     private static final AtomicReference<String> requestBody = new AtomicReference<>();
     private static final AtomicReference<String> authorization = new AtomicReference<>();
+    private static final AtomicReference<Runnable> duringModelCall = new AtomicReference<>();
     private static final HttpServer provider = startProvider();
 
     @LocalServerPort
@@ -56,6 +57,12 @@ class AiConnectionTests {
 
     @org.springframework.beans.factory.annotation.Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.aibot.travelplanner.destination.TripLocationStore locations;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.aibot.travelplanner.itinerary.ItineraryStore itineraries;
 
     @org.junit.jupiter.api.AfterEach
     void removeOwnTrip() {
@@ -89,6 +96,8 @@ class AiConnectionTests {
         assertThat(draft.get("days").get(0).get("date").asText()).isEqualTo("2027-01-10");
         assertThat(draft.get("estimatedActivityCostTotal").asText()).isEqualTo("250.25");
         assertThat(response.body()).contains("Fort visit", "saved AI draft", "INR");
+        assertThat(draft.get("selectedLocation").isNull()).isTrue();
+        assertThat(response.body()).contains("unverified destination text");
         var loaded = request("/api/v1/trips/" + TRIP_ID + "/itinerary", "GET");
         assertThat(loaded.statusCode()).isEqualTo(200);
         assertThat(mapper.readTree(loaded.body())).isEqualTo(draft);
@@ -107,6 +116,42 @@ class AiConnectionTests {
         providerBody.set(completion(itinerary(1, cost)));
         assertThat(request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST").statusCode()).isEqualTo(502);
         assertThat(calls.get()).isEqualTo(1);
+    }
+
+    @Test
+    void selectedLocationGuidesPromptAndSnapshotSurvivesConcurrentSelectionChange() throws Exception {
+        stubTrip(1);
+        var first = selectedLocation(100, "Paris", "France", "FR", "Europe/Paris");
+        var second = selectedLocation(200, "Paris", "United States", "US", "America/Chicago");
+        locations.save(first);
+        duringModelCall.set(() -> locations.save(second));
+        providerBody.set(completion(itinerary(1, "20.25")));
+        var response = request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST");
+        assertThat(response.statusCode()).isEqualTo(200);
+        var mapper = JsonMapper.builder().build();
+        var result = mapper.readValue(response.body(), com.aibot.travelplanner.itinerary.ItineraryDraft.class);
+        assertThat(result.selectedLocation()).isEqualTo(first);
+        assertThat(result.destination()).isEqualTo("Paris");
+        assertThat(locations.find(TRIP_ID).orElseThrow()).isEqualTo(second);
+        var messages = mapper.readTree(requestBody.get()).get("messages");
+        var input = mapper.readTree(messages.get(messages.size() - 1).get("content").asText());
+        assertThat(input.get("destination").asText()).isEqualTo("Paris");
+        assertThat(input.get("selectedLocation").get("country").asText()).isEqualTo("France");
+        assertThat(input.toString()).doesNotContain("Jaipur", "United States", TRIP_ID.toString(), "selectedAt");
+        assertThat(input.get("currency").asText()).isEqualTo("INR");
+        long oldId = itineraries.history(TRIP_ID, null, 1).versions().getFirst().id();
+        assertThat(itineraries.get(TRIP_ID).selectedLocation()).isEqualTo(first);
+
+        assertThat(request("/api/v1/trips/" + TRIP_ID + "/itinerary", "POST").statusCode()).isEqualTo(200);
+        assertThat(itineraries.get(TRIP_ID).selectedLocation()).isEqualTo(second);
+        assertThat(itineraries.getVersion(TRIP_ID, oldId).itinerary().selectedLocation()).isEqualTo(first);
+    }
+
+    private com.aibot.travelplanner.destination.SelectedDestination selectedLocation(
+            long id, String name, String country, String code, String zone) {
+        return new com.aibot.travelplanner.destination.SelectedDestination(TRIP_ID,
+                new com.aibot.travelplanner.destination.DestinationSearch.Place(id, name, country, code,
+                        null, 48.85, 2.35, zone), "Test provider attribution", "https://example.invalid/", Instant.parse("2026-10-05T10:00:00Z"));
     }
 
     @ParameterizedTest
@@ -176,6 +221,8 @@ class AiConnectionTests {
                 calls.incrementAndGet();
                 requestBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
                 authorization.set(exchange.getRequestHeaders().getFirst("Authorization"));
+                var action = duringModelCall.getAndSet(null);
+                if (action != null) action.run();
                 byte[] body = providerBody.get().getBytes(StandardCharsets.UTF_8);
                 exchange.getResponseHeaders().set("Content-Type", "application/json");
                 exchange.sendResponseHeaders(providerStatus.get(), body.length);
@@ -201,6 +248,7 @@ class AiConnectionTests {
 
     @BeforeEach
     void resetProvider() {
+        duringModelCall.set(null);
         jdbc.update("""
                 INSERT INTO trips (id, destination, start_date, end_date, travelers, budget, currency, created_at)
                 VALUES (?, 'Jaipur', '2027-01-10', '2027-01-10', 2, 1000, 'INR', CURRENT_TIMESTAMP)

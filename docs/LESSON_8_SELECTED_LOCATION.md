@@ -1,5 +1,9 @@
 # Select and save a trip's location
 
+Update: [location-aware generation](LESSON_10_LOCATION_AWARE_ITINERARIES.md) now
+uses this selection in new AI drafts. The original milestone description below
+describes selection/persistence before that integration.
+
 Destination search returns candidates. This milestone lets the traveler select
 one for a trip and read it later without an external lookup. Coordinates will
 be available for weather integration; this step does not fetch weather or change

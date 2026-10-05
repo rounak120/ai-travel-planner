@@ -1,5 +1,24 @@
 # Verification
 
+## Location-aware itinerary milestone (2026-10-05)
+
+- Maven suite: **134 tests, zero failures/errors** (`-Ddebug=false test`).
+- Real Spring AI HTTP payload tested against a fake model: selected place name,
+  country and geographic context replace the ambiguous original destination;
+  trip budget/currency remain unchanged and database trip IDs are not sent.
+- A test changes the current selection while the model request is executing.
+  The generated snapshot retains the original selection; a later generation uses
+  the new one, and retrieving the old version still returns its original location.
+- Legacy JSON with no `selectedLocation` field remains readable as null, without
+  backfilling from current trip state. Unselected trips keep text-based generation
+  with an explicit warning. No migration or dependency added.
+- Live Ollama generation on the two-day Jaipur demo trip returned HTTP 200 in
+  10.07 seconds. GET matched the saved response, including provider location
+  1269515, Rajasthan, India. One new itinerary version was saved for this demo;
+  existing locations, original trip text and prior itinerary versions were not
+  changed. No weather or geocoding request is part of this generation flow.
+- App restarted with the AI profile on localhost:8080.
+
 ## Trip weather milestone (2026-10-05)
 
 - Final Maven suite: **133 tests, zero failures/errors** (`-Ddebug=false test`).

@@ -2,6 +2,11 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+Location-aware generation updates `ItineraryService` to read a selection once,
+`ItineraryGenerator` to include geographic context, and `ItineraryDraft` to keep
+the selection with each version. Legacy JSON without the new field is supported.
+No new tables. See [the lesson](LESSON_10_LOCATION_AWARE_ITINERARIES.md).
+
 Package `weather` adds `WeatherController` (GET route), `WeatherService` (trip and
 forecast-window checks), `WeatherClient` (provider HTTP/validation), `TripWeather`
 (response), `WeatherUnavailableException` (safe errors), and `WeatherConfiguration`

@@ -2,6 +2,7 @@ package com.aibot.travelplanner.itinerary;
 
 import com.aibot.travelplanner.ai.ItineraryGenerator;
 import com.aibot.travelplanner.trip.TripService;
+import com.aibot.travelplanner.destination.TripLocationStore;
 import jakarta.validation.Validator;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -19,12 +20,15 @@ public class ItineraryService {
     private final ItineraryGenerator generator;
     private final Validator validator;
     private final ItineraryStore store;
+    private final TripLocationStore locations;
 
-    public ItineraryService(TripService trips, ItineraryGenerator generator, Validator validator, ItineraryStore store) {
+    public ItineraryService(TripService trips, ItineraryGenerator generator, Validator validator, ItineraryStore store,
+            TripLocationStore locations) {
         this.trips = trips;
         this.generator = generator;
         this.validator = validator;
         this.store = store;
+        this.locations = locations;
     }
 
     // Intentionally no transaction here: TripService's DB transaction ends before inference.
@@ -34,7 +38,10 @@ public class ItineraryService {
         if (dayCount < 1 || dayCount > 7) {
             throw new TripTooLongException();
         }
-        var generated = generator.generate(trip);
+        // Read once: prompt and saved provenance must use the same location snapshot,
+        // even if another request changes the trip's selection while the model runs.
+        var selected = locations.find(tripId).orElse(null);
+        var generated = generator.generate(trip, selected);
         if (generated == null || !validator.validate(generated).isEmpty()
                 || generated.days().size() != dayCount) {
             throw new InvalidItineraryException();
@@ -58,11 +65,15 @@ public class ItineraryService {
         if (total.compareTo(trip.budget()) > 0) {
             throw new InvalidItineraryException();
         }
-        return store.save(new ItineraryDraft(trip.id(), trip.destination(), trip.currency(), trip.budget(), total, days,
+        return store.save(new ItineraryDraft(trip.id(), selected == null ? trip.destination() : selected.place().name(),
+                trip.currency(), trip.budget(), total, days,
                 List.of("AI-generated draft: verify places, opening hours and prices before travelling.",
                         "Costs are estimates for the entire travel party in " + trip.currency() + ".",
                         "Only listed activities are costed; accommodation, intercity travel and unlisted meals are excluded.",
-                        "No live weather, availability or bookings were checked. This is a saved AI draft, not a booking.")));
+                        "No live weather, availability or bookings were checked. This is a saved AI draft, not a booking.",
+                        selected == null ? "No location was selected; this plan uses the trip's unverified destination text."
+                                : "This plan uses the saved selected location shown in selectedLocation. Attractions remain unverified."),
+                selected));
     }
 
     public static class TripTooLongException extends RuntimeException {
