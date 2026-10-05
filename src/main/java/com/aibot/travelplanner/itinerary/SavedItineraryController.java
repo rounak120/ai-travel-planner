@@ -22,6 +22,25 @@ public class SavedItineraryController {
         return store.get(tripId);
     }
 
+    @GetMapping("/versions")
+    public ItineraryHistory history(@PathVariable UUID tripId,
+            @RequestParam(defaultValue = "20") int limit, @RequestParam(required = false) Long beforeId) {
+        if (limit < 1 || limit > 50 || (beforeId != null && beforeId < 1)) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "limit must be 1–50 and beforeId must be positive.");
+        }
+        return store.history(tripId, beforeId, limit);
+    }
+
+    @GetMapping("/versions/{versionId}")
+    public ItineraryVersion version(@PathVariable UUID tripId, @PathVariable long versionId) {
+        if (versionId < 1) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "versionId must be positive.");
+        }
+        return store.getVersion(tripId, versionId);
+    }
+
     @ExceptionHandler({TripNotFoundException.class, ItineraryNotFoundException.class})
     public ProblemDetail missing(RuntimeException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());

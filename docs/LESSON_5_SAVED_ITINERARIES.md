@@ -31,7 +31,8 @@ Future response shape changes must account for already-stored documents.
 Every successful generation inserts a new immutable row. GET selects the highest
 database-generated ID for the trip. An index supports that lookup. For concurrent
 requests, this means insertion order among visible rows, not request start order.
-There is no revision-history endpoint or retention cleanup yet.
+The following [history milestone](LESSON_6_ITINERARY_HISTORY.md) adds listing and
+specific-version retrieval. There is still no retention cleanup.
 
 ## Why save after validation?
 

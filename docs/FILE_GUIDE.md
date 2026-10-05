@@ -2,6 +2,12 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+History adds `itinerary/ItineraryHistory.java` for paginated metadata and
+`itinerary/ItineraryVersion.java` for a selected saved snapshot. Existing
+`ItineraryStore` and `SavedItineraryController` handle the new read-only routes.
+`ItineraryHistoryTests` covers paging, trip-scoped lookup and input validation
+without AI enabled. See [the history lesson](LESSON_6_ITINERARY_HISTORY.md).
+
 ## Itinerary draft files (Lesson 4, step 2)
 
 | File/package | Role in this milestone |

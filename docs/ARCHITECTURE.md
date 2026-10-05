@@ -56,7 +56,7 @@ working feature; there are no empty placeholder implementations.
 | --- | --- | --- |
 | `system` | Application status response | Implemented |
 | `trip` | Trip details, dates, budget, traveler preferences | Create/read, validation, and PostgreSQL persistence implemented |
-| `itinerary` | Day plans, activities, validation, revisions | Validated snapshots saved; latest retrieval implemented; editing/history API planned |
+| `itinerary` | Day plans, activities, validation, revisions | Validated snapshots, latest retrieval, paginated history and specific-version retrieval implemented; editing planned |
 | `ai` | Conversation, prompts, model calls, MCP client, structured output | Ollama connection and structured draft generation implemented; MCP planned |
 | `mcp` | MCP server tool definitions and transport configuration | Planned |
 | `integration` | External weather, place, and travel API adapters | Planned |

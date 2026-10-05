@@ -32,6 +32,18 @@ Accept: application/json
 GET http://localhost:8080/api/v1/trips/00000000-0000-0000-0000-000000000000/itinerary
 Accept: application/json
 
+### List saved versions, newest first; replace trip UUID.
+GET http://localhost:8080/api/v1/trips/00000000-0000-0000-0000-000000000000/itinerary/versions?limit=5
+Accept: application/json
+
+### Read an older version; replace both trip UUID and version ID from the list.
+GET http://localhost:8080/api/v1/trips/00000000-0000-0000-0000-000000000000/itinerary/versions/1
+Accept: application/json
+
+### Next history page; replace beforeId with the previous response's nextBeforeId.
+GET http://localhost:8080/api/v1/trips/00000000-0000-0000-0000-000000000000/itinerary/versions?limit=5&beforeId=1
+Accept: application/json
+
 ### Invalid trip: HTTP 400, errors for destination, travelers, and budget.
 POST http://localhost:8080/api/v1/trips
 Content-Type: application/json

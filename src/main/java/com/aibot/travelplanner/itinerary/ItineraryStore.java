@@ -39,4 +39,41 @@ public class ItineraryStore {
         }
         return json.readValue(documents.getFirst(), ItineraryDraft.class);
     }
+
+    @Transactional(readOnly = true)
+    public ItineraryHistory history(UUID tripId, Long beforeId, int limit) {
+        if (limit < 1 || limit > 50 || (beforeId != null && beforeId < 1)) {
+            throw new IllegalArgumentException("limit must be 1–50 and beforeId must be positive.");
+        }
+        trips.get(tripId);
+        // An exclusive ID cursor stays stable when newer generations are inserted.
+        String sql = """
+                SELECT id, created_at, document->>'currency' AS currency,
+                       (document->>'estimatedActivityCostTotal')::numeric AS cost
+                FROM itineraries WHERE trip_id = ?
+                """ + (beforeId == null ? "" : " AND id < ?") + " ORDER BY id DESC LIMIT ?";
+        Object[] arguments = beforeId == null
+                ? new Object[]{tripId, limit + 1} : new Object[]{tripId, beforeId, limit + 1};
+        var rows = jdbc.query(sql, (row, index) -> new ItineraryHistory.Entry(row.getLong("id"),
+                row.getTimestamp("created_at").toInstant(), row.getString("currency"),
+                row.getBigDecimal("cost")), arguments);
+        boolean hasMore = rows.size() > limit;
+        var page = hasMore ? rows.subList(0, limit) : rows;
+        return new ItineraryHistory(page, hasMore ? page.getLast().id() : null);
+    }
+
+    @Transactional(readOnly = true)
+    public ItineraryVersion getVersion(UUID tripId, long versionId) {
+        trips.get(tripId);
+        // Scope by BOTH keys: an ID from another trip must never select its document.
+        var rows = jdbc.query("""
+                SELECT id, created_at, document::text FROM itineraries WHERE trip_id = ? AND id = ?
+                """, (row, index) -> new ItineraryVersion(row.getLong("id"),
+                row.getTimestamp("created_at").toInstant(),
+                json.readValue(row.getString("document"), ItineraryDraft.class)), tripId, versionId);
+        if (rows.isEmpty()) {
+            throw new ItineraryNotFoundException("No saved itinerary version exists with that ID for this trip.");
+        }
+        return rows.getFirst();
+    }
 }

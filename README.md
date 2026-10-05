@@ -179,7 +179,7 @@ Generation can take a minute or more; the provider read timeout is 180 seconds.
 Activity estimates are for the whole party and exclude accommodation, intercity
 travel and unlisted meals. They are not verified prices or a complete trip quote.
 
-Current lesson: [Structured itinerary drafts](docs/LESSON_4_ITINERARY.md).
+Generation lesson: [Structured itinerary drafts](docs/LESSON_4_ITINERARY.md).
 Read the latest saved version without calling Ollama (also works without `ai`):
 
 ```bash
@@ -189,10 +189,29 @@ curl http://localhost:8080/api/v1/trips/REPLACE_WITH_ID/itinerary
 GET returns 404 if the trip is missing or has no saved itinerary. You can open
 the GET URL in a browser; replace the placeholder with an actual trip UUID.
 For concurrent generation, latest means highest database-assigned snapshot ID,
-not the request that started last. Older snapshots are retained but there is no
-history API yet.
+not the request that started last. Older snapshots remain accessible through
+the version-history API.
 
 See [saving and reading itineraries](docs/LESSON_5_SAVED_ITINERARIES.md).
+
+## Read previous itinerary versions
+
+```bash
+# Newest first; default 20 results, maximum 50
+curl 'http://localhost:8080/api/v1/trips/REPLACE_WITH_ID/itinerary/versions?limit=5'
+
+# Use an actual id from the versions array
+curl http://localhost:8080/api/v1/trips/REPLACE_WITH_ID/itinerary/versions/REPLACE_WITH_VERSION_ID
+```
+
+History lists each snapshot's `id`, `createdAt`, currency and estimated activity
+cost. If `nextBeforeId` is non-null, pass it as `beforeId` with the next list
+request. An empty history returns 200 with an empty array; an unknown trip or
+version returns 404. Invalid limits, cursors and ID formats return 400.
+Version IDs are global database IDs, not consecutive numbers within one trip.
+Reading an older version does not change the latest itinerary or call AI.
+
+Current lesson: [Itinerary version history](docs/LESSON_6_ITINERARY_HISTORY.md).
 
 ## Local development boundary
 

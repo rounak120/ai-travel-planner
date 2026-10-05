@@ -1,5 +1,20 @@
 # Verification
 
+## Itinerary history milestone (2026-10-05)
+
+- Maven regression suite: **82 tests, zero failures/errors** (`-Ddebug=false test`).
+- Fourteen new cases cover default/max paging bounds, empty history, unknown
+  trips and versions, invalid cursors and IDs, exact last pages, ordered metadata,
+  an exclusive cursor while a new version is inserted, and trip-scoped lookup.
+- History and selected-version tests run without the AI profile. Selecting an
+  older version leaves the latest plan and stored row count unchanged.
+- Live history GET for the existing Jaipur trip returned HTTP 200 with saved
+  version 1. Specific-version and latest GET both returned HTTP 200; the selected
+  snapshot's itinerary matched the existing latest plan. No real AI generation
+  was needed and no development data was inserted or deleted.
+- No schema migration or changes to existing POST/latest GET response shapes.
+- Application restarted with the AI profile on localhost:8080.
+
 ## Saved itinerary milestone (2026-10-03)
 
 - Final Maven suite: **68 tests, zero failures/errors** (`-Ddebug=false test`).
