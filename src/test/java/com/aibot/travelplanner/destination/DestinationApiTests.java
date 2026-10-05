@@ -32,6 +32,104 @@ class DestinationApiTests {
     private static final java.util.concurrent.ExecutorService executor = Executors.newCachedThreadPool();
     private static final HttpServer provider = startProvider();
     @LocalServerPort int port;
+    @org.springframework.beans.factory.annotation.Autowired
+    com.aibot.travelplanner.trip.TripService trips;
+    @org.springframework.beans.factory.annotation.Autowired
+    org.springframework.jdbc.core.JdbcTemplate jdbc;
+    @org.springframework.beans.factory.annotation.Autowired
+    TripLocationStore locationStore;
+    @org.springframework.beans.factory.annotation.Autowired
+    org.springframework.transaction.PlatformTransactionManager transactions;
+    private final java.util.List<java.util.UUID> ownTripIds = new java.util.ArrayList<>();
+
+    @AfterEach
+    void cleanOwnTrips() {
+        ownTripIds.forEach(id -> jdbc.update("DELETE FROM trips WHERE id = ?", id));
+    }
+
+    private java.util.UUID createTrip() {
+        var date = java.time.LocalDate.now().plusDays(30);
+        var trip = trips.create(new com.aibot.travelplanner.trip.CreateTripRequest("Jaipur", date, date, 2,
+                new java.math.BigDecimal("5000.00"), "INR", java.util.List.of("history")));
+        ownTripIds.add(trip.id());
+        return trip.id();
+    }
+
+    @Test
+    void savesProviderLocationReadsOfflineAndAtomicallyReplaces() throws Exception {
+        var id = createTrip();
+        assertThat(location(id, "GET", null).statusCode()).isEqualTo(404);
+        var saved = location(id, "PUT", "{\"searchName\":\"Jaipur\",\"placeId\":1269515}");
+        assertThat(saved.statusCode()).isEqualTo(200);
+        var mapper = JsonMapper.builder().build();
+        var selected = mapper.readValue(saved.body(), SelectedDestination.class);
+        assertThat(selected.tripId()).isEqualTo(id);
+        assertThat(selected.place().latitude()).isEqualTo(26.91962);
+        assertThat(selected.selectedAt()).isNotNull();
+        assertThat(selected.attribution()).contains("GeoNames");
+        status.set(500); // Reading a saved location must work even if the provider is down.
+        var loaded = location(id, "GET", null);
+        assertThat(loaded.statusCode()).isEqualTo(200);
+        assertThat(mapper.readValue(loaded.body(), SelectedDestination.class)).isEqualTo(selected);
+        assertThat(calls.get()).isEqualTo(1);
+        assertThat(location(id, "PUT", "{\"searchName\":\"Jaipur\",\"placeId\":1269515}").statusCode()).isEqualTo(502);
+        assertThat(locationStore.find(id).orElseThrow()).isEqualTo(selected);
+        status.set(200);
+        assertThat(location(id, "PUT", "{\"searchName\":\"Jaipur\",\"placeId\":999999}").statusCode()).isEqualTo(422);
+        assertThat(locationStore.find(id).orElseThrow()).isEqualTo(selected);
+        body.set(body.get().replace("1269515", "123456").replace("26.91962", "26.95"));
+        assertThat(location(id, "PUT", "{\"searchName\":\"Jaipur\",\"placeId\":123456}").statusCode()).isEqualTo(200);
+        assertThat(locationStore.find(id).orElseThrow().place().id()).isEqualTo(123456);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM trip_locations WHERE trip_id = ?", Integer.class, id)).isEqualTo(1);
+        assertThat(trips.get(id).destination()).isEqualTo("Jaipur");
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM itineraries WHERE trip_id = ?", Integer.class, id)).isZero();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "null", "not-json", "{\"searchName\":\"Jaipur\"}",
+            "{\"searchName\":\"Jaipur\",\"placeId\":0}", "{\"searchName\":\"  \",\"placeId\":1}",
+            "{\"searchName\":\"Ab\\ncd\",\"placeId\":1}"})
+    void invalidSelectionNeverCallsProvider(String payload) throws Exception {
+        assertThat(location(createTrip(), "PUT", payload).statusCode()).isEqualTo(400);
+        assertThat(calls.get()).isZero();
+    }
+
+    @Test
+    void missingTripNeverCallsProviderAndTripsKeepSeparateSelections() throws Exception {
+        var missing = java.util.UUID.randomUUID();
+        assertThat(location(missing, "PUT", "{\"searchName\":\"Jaipur\",\"placeId\":1269515}").statusCode()).isEqualTo(404);
+        assertThat(location(missing, "GET", null).statusCode()).isEqualTo(404);
+        assertThat(calls.get()).isZero();
+        var first = createTrip();
+        var second = createTrip();
+        assertThat(location(first, "PUT", "{\"searchName\":\"Jaipur\",\"placeId\":1269515}").statusCode()).isEqualTo(200);
+        assertThat(location(second, "GET", null).statusCode()).isEqualTo(404);
+        assertThat(calls.get()).isEqualTo(1);
+    }
+
+    @Test
+    void rolledBackReplacementPreservesSavedLocation() throws Exception {
+        var id = createTrip();
+        assertThat(location(id, "PUT", "{\"searchName\":\"Jaipur\",\"placeId\":1269515}").statusCode()).isEqualTo(200);
+        var saved = locationStore.find(id).orElseThrow();
+        var changed = new SelectedDestination(id, saved.place(), "different attribution", saved.sourceUrl(), saved.selectedAt());
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                new org.springframework.transaction.support.TransactionTemplate(transactions).executeWithoutResult(tx -> {
+                    locationStore.save(changed);
+                    throw new IllegalStateException("rollback test");
+                })).isInstanceOf(IllegalStateException.class);
+        assertThat(locationStore.find(id).orElseThrow()).isEqualTo(saved);
+    }
+
+    private HttpResponse<String> location(java.util.UUID id, String method, String payload) throws Exception {
+        try (var client = HttpClient.newHttpClient()) {
+            return client.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port
+                    + "/api/v1/trips/" + id + "/location")).timeout(Duration.ofSeconds(10))
+                    .header("Content-Type", "application/json")
+                    .method(method, payload == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(payload))
+                    .build(), HttpResponse.BodyHandlers.ofString());
+        }
+    }
 
     private static HttpServer startProvider() {
         try {

@@ -1,5 +1,23 @@
 # Verification
 
+## Selected trip location milestone (2026-10-05)
+
+- Maven suite: **118 tests, zero failures/errors** (`-Ddebug=false test`).
+- New cases verify provider-backed save/read, atomic replacement with one row per
+  trip, rollback, failed/missing-choice preservation, invalid requests without
+  network calls, trip isolation and V3's foreign key. Tests run without AI and
+  use a fake provider; only test-owned trips and cascading selections are cleaned.
+- V3 applied to test and development databases. Earlier migrations unchanged.
+- Live connectivity now succeeded: Jaipur search returned HTTP 200 and included
+  Jaipur, Rajasthan, India (provider ID 1269515), alongside other matches.
+- PUT saved that verified search result for the existing Jaipur sample trip:
+  HTTP 200. After restarting the app, GET returned HTTP 200 with an identical
+  saved location, including attribution and timestamp. Existing trip text and
+  itinerary snapshots were not changed. No AI calls were made.
+- The old provider-timeout observation below is historical, not the current live
+  test result. External availability is still not guaranteed.
+- App left running on localhost:8080 with the AI profile.
+
 ## Destination lookup milestone (2026-10-05)
 
 - Full Maven suite: **107 tests, zero failures/errors** (`-Ddebug=false test`).

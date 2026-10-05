@@ -235,7 +235,29 @@ revisit provider terms before deployment. Location data comes from GeoNames via
 Open-Meteo; preserve returned attribution in any future UI. This is city/location
 search, not verification of attractions, prices, opening hours or weather.
 
-Current lesson: [Destination search](docs/LESSON_7_DESTINATION_SEARCH.md).
+Search lesson: [Destination search](docs/LESSON_7_DESTINATION_SEARCH.md).
+
+## Select a trip location
+
+After searching, submit the same search text and an actual returned place ID:
+
+```bash
+curl -X PUT http://localhost:8080/api/v1/trips/REPLACE_WITH_TRIP_ID/location \
+  -H 'Content-Type: application/json' \
+  -d '{"searchName":"Jaipur","placeId":REPLACE_WITH_PLACE_ID}'
+
+curl http://localhost:8080/api/v1/trips/REPLACE_WITH_TRIP_ID/location
+```
+
+Replace the placeholders before running. PUT rechecks the search result with
+Open-Meteo and atomically saves one current location per trip. GET reads the
+saved location without external calls. Provider failure (502) or an ID no longer
+in the results (422) preserves the prior selection; invalid input returns 400.
+GET returns 404 for a missing trip or a trip without a selected location.
+
+This does not modify the original trip text, existing itineraries or AI prompts.
+Weather is not implemented yet. Current lesson:
+[Selected trip location](docs/LESSON_8_SELECTED_LOCATION.md).
 
 ## Local development boundary
 

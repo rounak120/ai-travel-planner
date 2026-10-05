@@ -42,6 +42,14 @@ class DatabaseMigrationTests {
     }
 
     @Test
+    void locationMigrationAppliedAndRequiresExistingTrip() {
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE version = '3' AND success = true",
+                Integer.class)).isEqualTo(1);
+        assertThatThrownBy(() -> jdbc.update("INSERT INTO trip_locations VALUES (?, '{}'::jsonb)", UUID.randomUUID()))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
     void schemaStoresExactMoneyAndOrderedInterests() {
         UUID id = UUID.randomUUID();
         insertTrip(id, LocalDate.of(2027, 1, 14), new BigDecimal("50000.25"));

@@ -2,6 +2,13 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+Selected locations add `TripLocationController`, `TripLocationService` and
+`TripLocationStore` under `destination`, plus request/response records
+`SelectDestinationRequest` and `SelectedDestination`. Migration
+`V3__create_trip_locations.sql` adds one current snapshot per trip. Tests extend
+the fake-provider destination suite to cover persistence and failure preservation.
+See [the selection lesson](LESSON_8_SELECTED_LOCATION.md).
+
 Destination lookup adds package `destination`: `DestinationController` validates
 search requests, `DestinationService` calls Open-Meteo, `DestinationSearch` defines
 our public result shape, and `DestinationUnavailableException` provides safe
