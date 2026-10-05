@@ -61,6 +61,10 @@ Content-Type: application/json
 GET http://localhost:8080/api/v1/trips/00000000-0000-0000-0000-000000000000/location
 Accept: application/json
 
+### Weather: replace UUID; requires selected location and all dates within the next 16 days.
+GET http://localhost:8080/api/v1/trips/00000000-0000-0000-0000-000000000000/weather
+Accept: application/json
+
 ### Invalid trip: HTTP 400, errors for destination, travelers, and budget.
 POST http://localhost:8080/api/v1/trips
 Content-Type: application/json

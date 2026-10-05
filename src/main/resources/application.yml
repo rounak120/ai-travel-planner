@@ -29,6 +29,9 @@ spring:
     clean-disabled: true
 
 travel:
+  weather:
+    base-url: https://api.open-meteo.com
+    timeout-ms: 5000
   geocoding:
     base-url: https://geocoding-api.open-meteo.com
     timeout-ms: 5000

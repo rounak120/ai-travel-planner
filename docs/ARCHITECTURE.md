@@ -32,7 +32,9 @@ The `destination` package now adds a direct, read-only Open-Meteo geocoding
 integration via `GET /api/v1/destinations?name=...`. It returns candidate locations;
 PUT/GET `/api/v1/trips/{tripId}/location` now persist a selected provider-backed
 location using the V3 `trip_locations` table. This does not yet feed the AI prompt,
-verify attractions or call weather/MCP.
+verify attractions or call MCP. A separate GET `/api/v1/trips/{tripId}/weather`
+now uses the selected coordinates and exact trip dates within a guarded 16-day
+window. It does not feed the AI prompt or modify itineraries.
 
 ```mermaid
 flowchart TD
@@ -65,7 +67,7 @@ working feature; there are no empty placeholder implementations.
 | `itinerary` | Day plans, activities, validation, revisions | Validated snapshots, latest retrieval, paginated history and specific-version retrieval implemented; editing planned |
 | `ai` | Conversation, prompts, model calls, MCP client, structured output | Ollama connection and structured draft generation implemented; MCP planned |
 | `mcp` | MCP server tool definitions and transport configuration | Planned |
-| `destination` / future `integration` | External location, weather and travel API adapters | Destination geocoding implemented; weather and attraction data planned |
+| `destination` / `weather` | External location, weather and travel API adapters | Destination geocoding/selection and trip-date weather implemented; attraction data planned |
 | `security` | Sign-in and ownership checks | Planned before shared deployment |
 
 Within a growing feature, add `api`, `application`, `domain`, and `infrastructure`

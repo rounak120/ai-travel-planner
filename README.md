@@ -256,8 +256,29 @@ in the results (422) preserves the prior selection; invalid input returns 400.
 GET returns 404 for a missing trip or a trip without a selected location.
 
 This does not modify the original trip text, existing itineraries or AI prompts.
-Weather is not implemented yet. Current lesson:
+Selection lesson:
 [Selected trip location](docs/LESSON_8_SELECTED_LOCATION.md).
+
+## Weather for a trip
+
+```bash
+curl http://localhost:8080/api/v1/trips/REPLACE_WITH_TRIP_ID/weather
+```
+
+Requires a saved location with a valid timezone. Returns daily min/max temperature
+in Celsius and precipitation in millimetres for the exact trip dates, with source,
+fetch timestamp and warnings. Null measurements mean unavailable, not zero.
+
+All trip dates must lie from today through today + 15 days in the destination's
+timezone. A trip outside or partly outside that window returns 422 with the
+supported dates; no substitute dates or fabricated long-range forecast are used.
+Unknown trips or missing selections return 404; unavailable/invalid provider
+responses return a safe 502. Each successful lookup is fresh: no cache, persistence,
+AI call or itinerary update. The provider receives coordinates, dates and timezone,
+not the trip ID, budget, travelers or interests. The existing five-second network
+timeout pattern and non-commercial provider usage limits apply.
+
+Current lesson: [Trip weather](docs/LESSON_9_TRIP_WEATHER.md).
 
 ## Local development boundary
 

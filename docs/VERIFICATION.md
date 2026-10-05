@@ -1,5 +1,24 @@
 # Verification
 
+## Trip weather milestone (2026-10-05)
+
+- Final Maven suite: **133 tests, zero failures/errors** (`-Ddebug=false test`).
+- Fifteen new weather cases use a fake HTTP provider and fixed clock. They cover
+  destination-local date boundaries (including UTC being one day earlier), the
+  full 16-day window and its last day, past/future/partial coverage rejection,
+  missing trip/location/timezone, invalid UUID, request privacy, exact dates/units,
+  array lengths, numeric ranges, null measurements, timezone aliases, sanitized
+  provider failures and timeouts. No AI or public provider calls in the suite.
+- Created a separate development demo trip for Jaipur, October 6–7, 2026:
+  `e99200d3-6d19-4578-ac4f-20cef94fe41c`. Selected real provider location 1269515.
+  Live GET `/weather` returned HTTP 200 with two dated forecast entries.
+- Existing January 2027 sample returned a clear HTTP 422 date-window response;
+  no forecast request was needed for that trip. Its pre-existing selected location
+  currently uses Asia/Karachi; it was not changed by this milestone.
+- No migrations or new dependencies. Existing trips/itineraries remain unchanged
+  except for the explicitly added demo trip and its selected location. Forecasts
+  are not stored and do not alter itineraries. App restarted with the AI profile.
+
 ## Selected trip location milestone (2026-10-05)
 
 - Maven suite: **118 tests, zero failures/errors** (`-Ddebug=false test`).

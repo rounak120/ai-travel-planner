@@ -2,6 +2,12 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+Package `weather` adds `WeatherController` (GET route), `WeatherService` (trip and
+forecast-window checks), `WeatherClient` (provider HTTP/validation), `TripWeather`
+(response), `WeatherUnavailableException` (safe errors), and `WeatherConfiguration`
+(injectable clock). `WeatherApiTests` uses fixed time and a fake provider. No schema
+changes. See [the weather lesson](LESSON_9_TRIP_WEATHER.md).
+
 Selected locations add `TripLocationController`, `TripLocationService` and
 `TripLocationStore` under `destination`, plus request/response records
 `SelectDestinationRequest` and `SelectedDestination`. Migration
