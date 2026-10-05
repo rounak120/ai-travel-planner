@@ -28,6 +28,11 @@ spring:
     locations: classpath:db/migration
     clean-disabled: true
 
+travel:
+  geocoding:
+    base-url: https://geocoding-api.open-meteo.com
+    timeout-ms: 5000
+
 server:
   # Bind to this computer while we build the unauthenticated learning starter.
   address: ${SERVER_ADDRESS:127.0.0.1}

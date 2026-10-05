@@ -2,6 +2,12 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+Destination lookup adds package `destination`: `DestinationController` validates
+search requests, `DestinationService` calls Open-Meteo, `DestinationSearch` defines
+our public result shape, and `DestinationUnavailableException` provides safe
+provider errors. `DestinationApiTests` uses a local fake provider. No database
+migration or AI dependency is added. See [the lesson](LESSON_7_DESTINATION_SEARCH.md).
+
 History adds `itinerary/ItineraryHistory.java` for paginated metadata and
 `itinerary/ItineraryVersion.java` for a selected saved snapshot. Existing
 `ItineraryStore` and `SavedItineraryController` handle the new read-only routes.

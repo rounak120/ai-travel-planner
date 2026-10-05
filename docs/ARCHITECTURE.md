@@ -28,6 +28,10 @@ Step 2 adds a structured itinerary draft endpoint with server-side validation.
 Validated drafts are now saved as immutable PostgreSQL JSONB snapshots. A separate
 GET route reads the highest-ID saved snapshot without an AI dependency. MCP remains future work.
 
+The `destination` package now adds a direct, read-only Open-Meteo geocoding
+integration via `GET /api/v1/destinations?name=...`. It returns candidate locations;
+it does not yet store a selected location, verify attractions or call weather/MCP.
+
 ```mermaid
 flowchart TD
     UI["Web chat and trip dashboard — later"] --> API["Spring Boot REST API"]
@@ -59,7 +63,7 @@ working feature; there are no empty placeholder implementations.
 | `itinerary` | Day plans, activities, validation, revisions | Validated snapshots, latest retrieval, paginated history and specific-version retrieval implemented; editing planned |
 | `ai` | Conversation, prompts, model calls, MCP client, structured output | Ollama connection and structured draft generation implemented; MCP planned |
 | `mcp` | MCP server tool definitions and transport configuration | Planned |
-| `integration` | External weather, place, and travel API adapters | Planned |
+| `destination` / future `integration` | External location, weather and travel API adapters | Destination geocoding implemented; weather and attraction data planned |
 | `security` | Sign-in and ownership checks | Planned before shared deployment |
 
 Within a growing feature, add `api`, `application`, `domain`, and `infrastructure`

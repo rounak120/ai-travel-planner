@@ -1,5 +1,20 @@
 # Verification
 
+## Destination lookup milestone (2026-10-05)
+
+- Full Maven suite: **107 tests, zero failures/errors** (`-Ddebug=false test`).
+- Twenty-five new fake-provider cases cover response mapping, attribution, no
+  credentials, query encoding, absent optional fields, empty results, invalid
+  input without network calls, provider failures, invalid coordinates/JSON and
+  timeout behavior. The tests run without AI and do not use the public API.
+- Live local route returned a sanitized 502 after 5.11 seconds. Direct curl to
+  the geocoding provider and its main website also timed out after 15 seconds;
+  DNS lookup returned an address. Successful real-provider results are **not
+  verified in this environment**. Do not interpret the fake-provider tests as
+  evidence that external connectivity works. No network settings were changed.
+- App restarted on localhost:8080 with the new route. Existing saved trips and
+  itineraries were not changed; no database migration or dependency was added.
+
 ## Itinerary history milestone (2026-10-05)
 
 - Maven regression suite: **82 tests, zero failures/errors** (`-Ddebug=false test`).

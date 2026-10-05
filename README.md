@@ -211,7 +211,31 @@ version returns 404. Invalid limits, cursors and ID formats return 400.
 Version IDs are global database IDs, not consecutive numbers within one trip.
 Reading an older version does not change the latest itinerary or call AI.
 
-Current lesson: [Itinerary version history](docs/LESSON_6_ITINERARY_HISTORY.md).
+History lesson: [Itinerary version history](docs/LESSON_6_ITINERARY_HISTORY.md).
+
+## Search destinations
+
+```bash
+curl --get 'http://localhost:8080/api/v1/destinations' --data-urlencode 'name=Jaipur'
+```
+
+Returns up to five location matches with country, region, coordinates, timezone
+and attribution. Search names must be 2–100 characters after trimming. No matches
+returns an empty `results` array (200); invalid input returns 400; provider failure
+or timeout returns a safe 502. No AI profile or API key is required.
+
+This route sends the search text over the internet to Open-Meteo. It does not
+send saved trip details, select a match, save coordinates or change itineraries.
+Only an explicit destination search calls the provider; app startup and health
+checks do not. Each request has a five-second timeout and no application retries.
+
+Open-Meteo's free endpoint is for non-commercial use and is rate-limited. We have
+not added caching or a rate limiter, so keep this local learning API private and
+revisit provider terms before deployment. Location data comes from GeoNames via
+Open-Meteo; preserve returned attribution in any future UI. This is city/location
+search, not verification of attractions, prices, opening hours or weather.
+
+Current lesson: [Destination search](docs/LESSON_7_DESTINATION_SEARCH.md).
 
 ## Local development boundary
 
