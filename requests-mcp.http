@@ -1,0 +1,52 @@
+@baseUrl = http://127.0.0.1:8080
+@sessionId = REPLACE_WITH_MCP_SESSION_ID_FROM_INITIALIZE
+@protocolVersion = 2025-06-18
+@tripId = REPLACE_WITH_EXISTING_TRIP_UUID
+
+### Initialize first (mcp profile required). Copy session header and negotiated version above.
+POST {{baseUrl}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"manual-test","version":"1.0"}}}
+
+### Notify initialized (no id because this is a notification).
+POST {{baseUrl}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+Mcp-Session-Id: {{sessionId}}
+MCP-Protocol-Version: {{protocolVersion}}
+
+{"jsonrpc":"2.0","method":"notifications/initialized"}
+
+### Discover tools (does not call providers).
+POST {{baseUrl}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+Mcp-Session-Id: {{sessionId}}
+MCP-Protocol-Version: {{protocolVersion}}
+
+{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}
+
+### Search locations (one external provider request).
+POST {{baseUrl}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+Mcp-Session-Id: {{sessionId}}
+MCP-Protocol-Version: {{protocolVersion}}
+
+{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"search_destinations","arguments":{"name":"Jaipur"}}}
+
+### Fresh weather for the trip's selected location; requires eligible dates.
+POST {{baseUrl}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+Mcp-Session-Id: {{sessionId}}
+MCP-Protocol-Version: {{protocolVersion}}
+
+{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"get_trip_weather","arguments":{"tripId":"{{tripId}}"}}}
+
+### Close only the MCP session, not application data.
+DELETE {{baseUrl}}/mcp
+Mcp-Session-Id: {{sessionId}}
+MCP-Protocol-Version: {{protocolVersion}}

@@ -2,6 +2,13 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+MCP adds `mcp/TravelTools.java` (read-only service adapters), `LocalMcpFilter.java`
+(local Host/Origin checks), and `application-mcp.yml` (opt-in protocol configuration).
+The server starter is managed by the existing Spring AI BOM. `TravelMcpTests`
+uses a real SDK client/HTTP server with mocked services; `LocalMcpFilterTests`
+checks the guard. `requests-mcp.http` demonstrates protocol calls. See
+[the lesson](LESSON_12_MCP_SERVER.md).
+
 Weather-aware planning adds `weather/PlanningWeather.java` for forecast status
 and snapshot. `WeatherService.forPlanning` reuses captured trip/location data;
 `ItineraryService` calls it before AI; `ItineraryGenerator` supplies the resulting

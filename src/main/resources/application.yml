@@ -5,6 +5,11 @@ spring:
     # Explicitly load local credentials; environment variables can override them.
     import: optional:file:./.env[.properties]
   ai:
+    mcp:
+      server:
+        enabled: false
+        annotation-scanner:
+          enabled: false
     # No model is created unless we explicitly activate the ai profile.
     model:
       chat: none

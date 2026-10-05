@@ -26,7 +26,8 @@ they are not all separate deployment units.
 Lesson 4, step 1 adds an opt-in Spring AI/Ollama connection test in package `ai`.
 Step 2 adds a structured itinerary draft endpoint with server-side validation.
 Validated drafts are now saved as immutable PostgreSQL JSONB snapshots. A separate
-GET route reads the highest-ID saved snapshot without an AI dependency. MCP remains future work.
+GET route reads the highest-ID saved snapshot without an AI dependency. An opt-in
+read-only MCP server is now implemented; planner-side MCP client integration is future work.
 
 The `destination` package now adds a direct, read-only Open-Meteo geocoding
 integration via `GET /api/v1/destinations?name=...`. It returns candidate locations;
@@ -42,18 +43,19 @@ fallback statuses. Standalone weather GET does not modify existing itineraries.
 ```mermaid
 flowchart TD
     UI["Web chat and trip dashboard — later"] --> API["Spring Boot REST API"]
-    API --> Trips["Trip service — implemented; itineraries — later"]
-    API --> AI["AI orchestration and MCP client — later"]
-    AI --> Model["AI model provider — later"]
+    API --> Trips["Trip and itinerary services"]
+    API --> AI["AI orchestration"]
+    AI --> Model["Local Ollama"]
     AI --> Trips
     Trips --> DB["PostgreSQL — implemented"]
-    AI --> MCP["Travel MCP server — later"]
-    MCP --> Tools["Travel tool services — later"]
-    Tools --> Providers["Weather, places, travel APIs — later"]
+    Client["MCP client — planner integration later"] --> MCP["Read-only MCP server — opt-in"]
+    MCP --> Tools["Destination and weather services"]
+    AI --> Tools
+    Tools --> Providers["Open-Meteo geocoding and forecast"]
 ```
 
-The travel MCP server can initially run in the same Spring Boot application.
-Its tools will wrap Java services. Keeping the client and server roles distinct
+The travel MCP server runs in the same Spring Boot application with the `mcp`
+profile. Its two read-only tools wrap Java services. Keeping client and server roles distinct
 lets us learn the protocol without immediately operating multiple services.
 We can extract the server into its own module/process if another client needs it.
 
@@ -68,8 +70,8 @@ working feature; there are no empty placeholder implementations.
 | `system` | Application status response | Implemented |
 | `trip` | Trip details, dates, budget, traveler preferences | Create/read, validation, and PostgreSQL persistence implemented |
 | `itinerary` | Day plans, activities, validation, revisions | Validated snapshots, latest retrieval, paginated history and specific-version retrieval implemented; editing planned |
-| `ai` | Conversation, prompts, model calls, MCP client, structured output | Ollama connection and structured draft generation implemented; MCP planned |
-| `mcp` | MCP server tool definitions and transport configuration | Planned |
+| `ai` | Conversation, prompts, model calls, MCP client, structured output | Weather/location-aware Ollama generation implemented; planner MCP client planned |
+| `mcp` | MCP server tool definitions and transport configuration | Opt-in Streamable HTTP server with two read-only tools and local Host/Origin guard |
 | `destination` / `weather` | External location, weather and travel API adapters | Destination geocoding/selection and trip-date weather implemented; attraction data planned |
 | `security` | Sign-in and ownership checks | Planned before shared deployment |
 

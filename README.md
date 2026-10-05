@@ -311,7 +311,38 @@ without `weatherContext` return null: they do not acquire a forecast retroactive
 GET `/weather` remains available for a fresh lookup and retains its 404/422/502
 errors; unlike generation it does not have a fallback plan to return.
 
-Current lesson: [Weather-aware itinerary generation](docs/LESSON_11_WEATHER_AWARE_ITINERARIES.md).
+Planning lesson: [Weather-aware itinerary generation](docs/LESSON_11_WEATHER_AWARE_ITINERARIES.md).
+
+## Optional read-only MCP server
+
+```bash
+# MCP tools only (Ollama not needed)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=mcp
+
+# Or enable both the existing AI endpoints and MCP
+./mvnw spring-boot:run -Dspring-boot.run.profiles=ai,mcp
+```
+
+Stop the old app before reusing port 8080. Streamable HTTP endpoint:
+`http://127.0.0.1:8080/mcp`. Tools: `search_destinations(name)` and
+`get_trip_weather(tripId)`. MCP is disabled without the `mcp` profile.
+Initialization/discovery do not call providers. Tool calls reuse existing services
+and preserve source attribution, date-window rules and five-second provider timeouts.
+
+This is an MCP JSON-RPC endpoint, not a normal browser page. Clients initialize
+a session, list tools and then call them. See [requests-mcp.http](requests-mcp.http)
+or the [MCP lesson](docs/LESSON_12_MCP_SERVER.md) for the tested request sequence.
+The current itinerary flow still calls Java services directly; Ollama is not yet
+connected to these tools through an MCP client.
+
+Keep the existing loopback-only bind. MCP has no authentication or trip ownership
+checks; any local client with access can call the tools. Host/Origin checks reduce
+DNS-rebinding/cross-origin exposure, but do not replace authentication. No create,
+update, delete, booking or itinerary-generation tools are published. Read-only
+tools still use provider quota and can return saved location/weather data. Do not
+expose `/mcp` through tunnels or public binds without a proper security boundary.
+
+Current lesson: [Read-only MCP tools](docs/LESSON_12_MCP_SERVER.md).
 
 ## Local development boundary
 

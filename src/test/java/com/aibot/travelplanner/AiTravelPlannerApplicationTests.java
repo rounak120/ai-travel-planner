@@ -46,6 +46,7 @@ class AiTravelPlannerApplicationTests {
 
     @Test
     void aiEndpointIsAbsentWithoutAiProfile() throws Exception {
+        assertThat(get("/mcp").statusCode()).isEqualTo(404);
         assertThat(get("/api/v1/ai/test").statusCode()).isEqualTo(404);
         assertThat(get("/api/v1/trips/00000000-0000-0000-0000-000000000000/itinerary").statusCode()).isEqualTo(404);
     }

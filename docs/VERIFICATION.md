@@ -1,5 +1,26 @@
 # Verification
 
+## Read-only MCP server milestone (2026-10-05)
+
+- Maven suite: **150 tests, zero failures/errors** (`-Ddebug=false test`).
+- Added real MCP SDK client/HTTP server tests with deterministic mocked services:
+  initialize, discover exactly two tools, required schemas/read-only hints, valid
+  destination/weather results, invalid input without service calls, safe tool
+  errors, unsupported trip weather, unknown write tool rejection and foreign Origin.
+- Local filter unit cases cover rebound Host names, malformed/foreign Origins,
+  wrong ports/userinfo/path and allowed same-origin requests. Existing app test
+  confirms `/mcp` is absent when the profile is off. Tests do not call public APIs.
+- Live app restarted with `ai,mcp`. Manual JSON-RPC initialized a session using
+  protocol 2025-06-18, listed `search_destinations` and `get_trip_weather`, and
+  called both successfully (`isError: false`). Search returned actual Jaipur
+  candidates; weather returned the October 6–7 forecast for the existing demo
+  trip. The successful session was closed using DELETE `/mcp`.
+- No application data writes, AI calls or new database migration in this check.
+  Starter dependency added under the existing Spring AI 2.0.1 BOM. Existing
+  itinerary generation still calls services directly, not via MCP.
+- Endpoint remains loopback-only and unauthenticated; Host/Origin protection is
+  not a replacement for authentication/ownership/rate limits before deployment.
+
 ## Weather-aware itinerary milestone (2026-10-05)
 
 - Final Maven suite: **136 tests, zero failures/errors** (`-Ddebug=false test`).

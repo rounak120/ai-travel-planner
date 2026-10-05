@@ -29,7 +29,11 @@
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
-		<!-- Model connection only; itinerary generation comes in a later lesson. -->
+		<!-- Local model and an opt-in read-only MCP server. -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-model-ollama</artifactId>
