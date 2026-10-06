@@ -1,12 +1,12 @@
-# AI Travel Planner — lesson 4, step 1: AI connection
+# AI Travel Planner
 
 A Spring Boot application we will grow into a conversational travel planner.
 The eventual user supplies a destination, dates, budget, and interests; the
 assistant produces an itinerary and revises it with help from travel tools.
 
-**This milestone implements trip creation/retrieval, validation, status, health,
-and an opt-in AI connection test.** Itinerary generation, MCP, live travel data,
-and the chat UI are planned features.
+The project supports trips, saved itinerary versions, local AI generation,
+destination selection, live weather, and opt-in read-only MCP server/client tools.
+The chat UI and model-directed tool calls remain future steps.
 **Trips are now stored in PostgreSQL and survive application restarts.**
 Spring Data JPA handles storage, and Flyway manages the database schema.
 Both the trip API and local AI endpoint need no paid API service or AI key.
@@ -342,7 +342,24 @@ update, delete, booking or itinerary-generation tools are published. Read-only
 tools still use provider quota and can return saved location/weather data. Do not
 expose `/mcp` through tunnels or public binds without a proper security boundary.
 
-Current lesson: [Read-only MCP tools](docs/LESSON_12_MCP_SERVER.md).
+## Explicit MCP client
+
+Enable both sides (add `ai` if you also want Ollama):
+
+```bash
+./mvnw -Dspring-boot.run.profiles=mcp,mcp-client spring-boot:run
+curl http://localhost:8080/api/v1/mcp/tools
+curl 'http://localhost:8080/api/v1/mcp/destinations?name=Jaipur'
+curl http://localhost:8080/api/v1/mcp/trips/YOUR_TRIP_ID/weather
+```
+
+These REST endpoints make real MCP HTTP calls to this app's loopback `/mcp`.
+They are absent without `mcp-client`, do not call Ollama, and save nothing.
+HTTP 200 with `isError: true` means the protocol exchange succeeded but the tool
+failed; check `structuredContent`. Invalid REST input returns 400; MCP connection
+or protocol failures return 502. Keep these unauthenticated endpoints local too.
+
+Current lesson: [Explicit MCP client](docs/LESSON_13_MCP_CLIENT.md).
 
 ## Local development boundary
 

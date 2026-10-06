@@ -2,6 +2,12 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+MCP client additions: `mcp/TravelMcpClient.java` manages lazy SDK connections and
+approved calls; `mcp/McpClientController.java` is the opt-in REST bridge.
+`TravelMcpTests` covers real bridge/MCP calls and `McpClientUnavailableTests`
+checks client-only startup and safe connection failure. See
+[lesson 13](LESSON_13_MCP_CLIENT.md).
+
 MCP adds `mcp/TravelTools.java` (read-only service adapters), `LocalMcpFilter.java`
 (local Host/Origin checks), and `application-mcp.yml` (opt-in protocol configuration).
 The server starter is managed by the existing Spring AI BOM. `TravelMcpTests`

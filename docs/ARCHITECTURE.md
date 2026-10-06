@@ -1,5 +1,13 @@
 # AI Travel Planner: architecture and build plan
 
+## Explicit local MCP client
+
+With `mcp-client`, `McpClientController` exposes tool discovery, destination search
+and trip weather. `TravelMcpClient` opens a short-lived SDK session over loopback
+HTTP to `/mcp` (requires `mcp`). Only two read-only tools are allowed; neither
+server URL nor arbitrary tool name comes from the caller. This bridge does not
+register model callbacks or alter itinerary generation. See lesson 13.
+
 ## Product goal
 
 Help a traveler turn preferences into a practical, editable day-by-day itinerary.

@@ -50,3 +50,11 @@ MCP-Protocol-Version: {{protocolVersion}}
 DELETE {{baseUrl}}/mcp
 Mcp-Session-Id: {{sessionId}}
 MCP-Protocol-Version: {{protocolVersion}}
+### REST bridge: requires both mcp and mcp-client profiles
+GET http://localhost:8080/api/v1/mcp/tools
+
+### Explicit MCP search (does not invoke Ollama)
+GET http://localhost:8080/api/v1/mcp/destinations?name=Jaipur
+
+### Explicit MCP weather (replace tripId below or use the variable defined later)
+GET http://localhost:8080/api/v1/mcp/trips/{{tripId}}/weather

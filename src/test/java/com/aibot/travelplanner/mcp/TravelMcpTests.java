@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 
 /** Real MCP handshake, discovery and calls over HTTP; service results are deterministic fakes. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles({"mcp", "test"})
+@ActiveProfiles({"mcp", "mcp-client", "test"})
 class TravelMcpTests {
     @LocalServerPort int port;
     @MockitoBean DestinationService destinations;
@@ -125,6 +125,51 @@ class TravelMcpTests {
     @Test
     void unknownWriteToolCannotBeCalled() {
         assertThatThrownBy(() -> call("create_trip", Map.of())).isInstanceOf(RuntimeException.class);
+        verifyNoInteractions(destinations, weather);
+    }
+
+    private java.net.http.HttpResponse<String> get(String path) throws Exception {
+        try (var http = java.net.http.HttpClient.newHttpClient()) {
+            return http.send(java.net.http.HttpRequest.newBuilder(
+                    java.net.URI.create("http://127.0.0.1:" + port + path))
+                    .timeout(Duration.ofSeconds(20)).GET().build(),
+                    java.net.http.HttpResponse.BodyHandlers.ofString());
+        }
+    }
+
+    @Test
+    void restBridgeDiscoversToolsWithoutCallingProviders() throws Exception {
+        var response = get("/api/v1/mcp/tools");
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("search_destinations", "get_trip_weather");
+        verifyNoInteractions(destinations, weather);
+    }
+
+    @Test
+    void restBridgeSearchUsesMcpAndPreservesStructuredResult() throws Exception {
+        when(destinations.search("Jaipur")).thenReturn(new DestinationSearch(List.of(), "GeoNames", "https://open-meteo.com/"));
+        var response = get("/api/v1/mcp/destinations?name=%20Jaipur%20");
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("\"isError\":false", "structuredContent", "GeoNames");
+        verify(destinations).search("Jaipur");
+        verifyNoInteractions(weather);
+    }
+
+    @Test
+    void restBridgePreservesToolErrorsWithoutLeakingInternals() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(weather.get(id)).thenThrow(new TripNotFoundException(id));
+        var response = get("/api/v1/mcp/trips/" + id + "/weather");
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("\"isError\":true", "NOT_FOUND");
+        verify(weather).get(id);
+    }
+
+    @Test
+    void restBridgeRejectsInvalidArgumentsAndHasNoGenericToolRoute() throws Exception {
+        assertThat(get("/api/v1/mcp/destinations?name=a").statusCode()).isEqualTo(400);
+        assertThat(get("/api/v1/mcp/trips/1-1-1-1-1/weather").statusCode()).isEqualTo(400);
+        assertThat(get("/api/v1/mcp/tools/create_trip").statusCode()).isEqualTo(404);
         verifyNoInteractions(destinations, weather);
     }
 

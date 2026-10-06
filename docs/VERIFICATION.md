@@ -1,5 +1,19 @@
 # Verification
 
+## Explicit MCP client milestone (2026-10-06)
+
+- Full Maven suite: **155 tests, zero failures/errors** (`-Ddebug=false test`).
+- REST bridge tests exercise actual SDK initialization and MCP HTTP tool calls
+  against deterministic mocked services: discovery, search, missing-trip tool
+  errors, invalid arguments and absence of an arbitrary-tool route.
+- Without `mcp-client` the REST bridge is absent. With client but no MCP server,
+  application startup succeeds and discovery returns a sanitized HTTP 502.
+- Restarted the local app with `ai,mcp,mcp-client`. Live REST bridge discovery
+  listed exactly two tools; Jaipur search and the existing October 6–7 demo trip's
+  weather both returned `isError: false` with real provider data and attribution.
+- No data writes, Ollama calls, new dependencies or schema changes in this step.
+  `git diff --check` and local secret scan passed.
+
 ## Read-only MCP server milestone (2026-10-05)
 
 - Maven suite: **150 tests, zero failures/errors** (`-Ddebug=false test`).
