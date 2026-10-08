@@ -141,6 +141,10 @@ class WeatherApiTests {
             var response = get(ID.toString());
             assertThat(response.statusCode()).isEqualTo(422);
             assertThat(response.body()).contains("2026-10-05", "2026-10-20", "Asia/Kolkata");
+            var error = JsonMapper.builder().build().readTree(response.body());
+            assertThat(error.get("code").asString()).isEqualTo("DATES_OUTSIDE_FORECAST_WINDOW");
+            assertThat(error.get("context").get("tripStartDate").asString()).isEqualTo(range[0].toString());
+            assertThat(error.get("context").get("tripEndDate").asString()).isEqualTo(range[1].toString());
         }
         assertThat(calls.get()).isZero();
     }
@@ -154,9 +158,13 @@ class WeatherApiTests {
                 org.springframework.http.HttpStatus.NOT_FOUND, "This trip has no selected location."));
         assertThat(get(ID.toString()).statusCode()).isEqualTo(404);
         reset(locations); location(null);
-        assertThat(get(ID.toString()).statusCode()).isEqualTo(422);
+        var missingZone = get(ID.toString());
+        assertThat(missingZone.statusCode()).isEqualTo(422);
+        assertThat(missingZone.body()).contains("INVALID_TIMEZONE").doesNotContain("DATES_OUTSIDE_FORECAST_WINDOW");
         location("invalid-zone");
-        assertThat(get(ID.toString()).statusCode()).isEqualTo(422);
+        var badZone = get(ID.toString());
+        assertThat(badZone.statusCode()).isEqualTo(422);
+        assertThat(badZone.body()).contains("INVALID_TIMEZONE").doesNotContain("invalid-zone");
         assertThat(get("not-a-uuid").statusCode()).isEqualTo(400);
         assertThat(calls.get()).isZero();
     }

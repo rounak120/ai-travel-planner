@@ -120,6 +120,16 @@ public class TravelAssistantService {
                 results.add(new ToolResponseMessage.ToolResponse(call.id(), call.name(), json.writeValueAsString(result)));
             }
             messages.add(ToolResponseMessage.builder().responses(results).build());
+            // Do not let a model reinterpret these precise, application-owned validation errors.
+            for (var tool : used) {
+                if (tool.name().equals("get_trip_weather") && Boolean.TRUE.equals(tool.result().isError())
+                        && tool.result().structuredContent() instanceof Map<?, ?> data
+                        && data.get("code") instanceof String code
+                        && Set.of("INVALID_TIMEZONE", "DATES_OUTSIDE_FORECAST_WINDOW").contains(code)
+                        && data.get("message") instanceof String detail && !detail.isBlank()) {
+                    return new Answer("Weather unavailable: " + detail, List.copyOf(used));
+                }
+            }
         }
         throw new IllegalStateException("Model budget exceeded");
     }

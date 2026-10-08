@@ -5,6 +5,7 @@ import com.aibot.travelplanner.destination.DestinationUnavailableException;
 import com.aibot.travelplanner.trip.TripNotFoundException;
 import com.aibot.travelplanner.weather.WeatherService;
 import com.aibot.travelplanner.weather.WeatherUnavailableException;
+import com.aibot.travelplanner.weather.WeatherEligibilityException;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.ai.mcp.annotation.McpToolParam;
@@ -61,10 +62,14 @@ public class TravelTools {
             return success(weather.get(id));
         } catch (TripNotFoundException exception) {
             return error("NOT_FOUND", "No trip exists with that ID.");
+        } catch (WeatherEligibilityException exception) {
+            return CallToolResult.builder().isError(true).addTextContent(exception.getReason())
+                    .structuredContent(Map.of("code", exception.code(), "message", exception.getReason(),
+                            "context", exception.context())).build();
         } catch (ResponseStatusException exception) {
             return switch (exception.getStatusCode().value()) {
                 case 404 -> error("NOT_FOUND", "This trip has no selected location.");
-                case 422 -> error("UNSUPPORTED", "Weather requires a valid location timezone and all trip dates within today's 16-day forecast window.");
+                case 422 -> error("UNSUPPORTED", "Weather is not supported for this request. No specific cause was provided.");
                 default -> error("TOOL_UNAVAILABLE", "Trip weather could not complete.");
             };
         } catch (WeatherUnavailableException exception) {

@@ -23,7 +23,12 @@ public class WeatherController {
 
     @ExceptionHandler(ResponseStatusException.class)
     public ProblemDetail invalid(ResponseStatusException exception) {
-        return ProblemDetail.forStatusAndDetail(exception.getStatusCode(), exception.getReason());
+        var problem = ProblemDetail.forStatusAndDetail(exception.getStatusCode(), exception.getReason());
+        if (exception instanceof WeatherEligibilityException eligibility) {
+            problem.setProperty("code", eligibility.code());
+            problem.setProperty("context", eligibility.context());
+        }
+        return problem;
     }
 
     @ExceptionHandler(WeatherUnavailableException.class)

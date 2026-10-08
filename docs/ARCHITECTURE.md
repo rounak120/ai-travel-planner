@@ -1,5 +1,13 @@
 # AI Travel Planner: architecture and build plan
 
+## Weather validation errors
+
+`WeatherEligibilityException` carries an application-owned code and safe context
+from WeatherService to both REST and MCP. For `INVALID_TIMEZONE` and
+`DATES_OUTSIDE_FORECAST_WINDOW`, chat returns the exact validation message and tool
+evidence without a second model call. Other errors remain sanitized and retain
+the existing handling. HTTP 422 and MCP `isError: true` semantics are unchanged.
+
 ## Browser entry point
 
 Spring Boot serves `static/index.html`, `chat.css` and `chat.js` at `/`.

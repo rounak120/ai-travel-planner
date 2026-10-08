@@ -128,6 +128,23 @@ class TravelMcpTests {
         verifyNoInteractions(destinations, weather);
     }
 
+    @Test
+    void weatherEligibilityDetailsSurviveMcpWithoutConflatingCauses() {
+        UUID id = UUID.randomUUID();
+        when(weather.get(id)).thenThrow(WeatherEligibilityException.outsideWindow(
+                LocalDate.of(2026, 10, 6), LocalDate.of(2026, 10, 7), LocalDate.of(2026, 10, 8),
+                LocalDate.of(2026, 10, 23), ZoneId.of("Asia/Kolkata")));
+        var result = call("get_trip_weather", Map.of("tripId", id.toString()));
+        assertThat(result.isError()).isTrue();
+        var data = (Map<?, ?>) result.structuredContent();
+        assertThat(data.get("code")).isEqualTo("DATES_OUTSIDE_FORECAST_WINDOW");
+        assertThat(data.get("context").toString()).contains("2026-10-06", "2026-10-07", "2026-10-08", "2026-10-23", "Asia/Kolkata");
+        reset(weather);
+        when(weather.get(id)).thenThrow(WeatherEligibilityException.invalidTimezone());
+        var invalid = call("get_trip_weather", Map.of("tripId", id.toString()));
+        assertThat(invalid.structuredContent().toString()).contains("INVALID_TIMEZONE").doesNotContain("DATES_OUTSIDE_FORECAST_WINDOW");
+    }
+
     private java.net.http.HttpResponse<String> get(String path) throws Exception {
         try (var http = java.net.http.HttpClient.newHttpClient()) {
             return http.send(java.net.http.HttpRequest.newBuilder(

@@ -2,6 +2,11 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+`weather/WeatherEligibilityException.java` carries safe, typed weather validation
+reasons and date context. REST and MCP preserve those fields; the assistant returns
+these two errors directly to avoid model misinterpretation. See
+[lesson 16](LESSON_16_WEATHER_ERRORS.md).
+
 `src/main/resources/static/` contains the browser chat page (`index.html`), styles
 (`chat.css`), and API/rendering code (`chat.js`). `src/test/ui/chat-ui.test.js`
 exercises the real page with controlled HTTP responses, launched through installed

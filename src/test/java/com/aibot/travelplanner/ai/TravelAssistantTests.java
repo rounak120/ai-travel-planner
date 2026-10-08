@@ -117,6 +117,23 @@ class TravelAssistantTests {
         verify(mcp).weather(id);
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"INVALID_TIMEZONE", "DATES_OUTSIDE_FORECAST_WINDOW"})
+    void eligibilityErrorsAreReturnedExactlyWithoutModelReinterpretation(String code) {
+        String id = UUID.randomUUID().toString();
+        String detail = code.equals("INVALID_TIMEZONE") ? "Select a location with a valid timezone."
+                : "Trip dates 2026-10-06 through 2026-10-07 are outside 2026-10-08 through 2026-10-23 in Asia/Kolkata.";
+        var error = CallToolResult.builder().isError(true).addTextContent(detail)
+                .structuredContent(Map.of("code", code, "message", detail)).build();
+        when(mcp.weather(id)).thenReturn(error);
+        when(model.call(any(Prompt.class))).thenReturn(call("get_trip_weather", "{}"), reply("Your timezone is missing."));
+        var answer = service.ask(request(id));
+        assertThat(answer.message()).isEqualTo("Weather unavailable: " + detail);
+        assertThat(answer.tools().getFirst().result()).isSameAs(error);
+        verify(model, times(1)).call(any(Prompt.class));
+        verify(mcp).weather(id);
+    }
+
     @Test void invalidRequestNeverCallsModelOrTools() {
         for (var request : List.of(new TravelAssistantService.Request(" ", null),
                 new TravelAssistantService.Request("a".repeat(2001), null), request("1-1-1-1-1"))) {

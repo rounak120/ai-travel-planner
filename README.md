@@ -387,6 +387,11 @@ No frontend dependencies or separate build are needed.
 
 Current lesson: [Browser chat UI](docs/LESSON_15_CHAT_UI.md).
 
+Weather validation now preserves distinct `INVALID_TIMEZONE` and
+`DATES_OUTSIDE_FORECAST_WINDOW` errors across REST, MCP and chat. For these errors,
+chat returns the application's exact explanation without model reinterpretation.
+See [Lesson 16: precise weather errors](docs/LESSON_16_WEATHER_ERRORS.md).
+
 ## Local development boundary
 
 This starter binds to `127.0.0.1` and has no authentication. Authentication and

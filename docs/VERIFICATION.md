@@ -1,5 +1,23 @@
 # Verification
 
+## Precise weather errors (2026-10-08)
+
+- Full Maven suite: **174 tests, zero failures/errors**.
+- Weather REST tests distinguish missing/invalid timezone from past, future and
+  partially covered dates, asserting safe typed context and no provider calls.
+- Real MCP transport preserves codes/date context; unknown exception details
+  remain sanitized. Parameterized assistant tests verify exact validation messages
+  and one model call, even if a mocked second answer would misdiagnose the cause.
+- Full REST → model tool request → MCP → real WeatherService regression uses a
+  fixed October 8 clock and a valid Jaipur timezone for an October 6–7 trip.
+  REST and chat evidence match exactly; no weather-provider interaction occurs.
+- Live existing trip `e99200d3-6d19-4578-ac4f-20cef94fe41c` confirmed through REST,
+  MCP bridge and Ollama chat: `DATES_OUTSIDE_FORECAST_WINDOW`, valid Asia/Kolkata,
+  October 6–7 trip versus October 8–23 supported dates. Chat returns the exact
+  date explanation, not a timezone guess. App restarted with existing profiles.
+- No saved trip/location changes, new dependencies or migrations. Secret scan
+  and `git diff --check` passed. UI code unchanged.
+
 ## Browser chat milestone (2026-10-08)
 
 - Full Maven suite: **170 tests, zero failures/errors**. New HTTP check verifies

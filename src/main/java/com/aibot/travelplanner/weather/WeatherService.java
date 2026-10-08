@@ -4,7 +4,6 @@ import com.aibot.travelplanner.destination.TripLocationService;
 import com.aibot.travelplanner.trip.TripService;
 import com.aibot.travelplanner.trip.Trip;
 import com.aibot.travelplanner.destination.SelectedDestination;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.*;
@@ -55,15 +54,12 @@ public class WeatherService {
         try {
             zone = ZoneId.of(place.timezone());
         } catch (RuntimeException exception) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT,
-                    "Select a location with a valid timezone before requesting weather.");
+            throw WeatherEligibilityException.invalidTimezone();
         }
         var today = LocalDate.now(clock.withZone(zone));
         var lastDay = today.plusDays(15);
         if (trip.startDate().isBefore(today) || trip.endDate().isAfter(lastDay)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT,
-                    "This endpoint requires all trip dates within " + today + " through " + lastDay
-                            + " in " + zone + ". No forecast is available here for the full trip yet or its dates are past.");
+            throw WeatherEligibilityException.outsideWindow(trip.startDate(), trip.endDate(), today, lastDay, zone);
         }
         var days = client.forecast(place, trip.startDate(), trip.endDate());
         return new TripWeather(trip.id(), place, zone.getId(), clock.instant(), days,
