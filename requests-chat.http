@@ -1,0 +1,11 @@
+### Requires ai,mcp,mcp-client profiles and local Ollama
+POST http://localhost:8080/api/v1/ai/chat
+Content-Type: application/json
+
+{"message":"Search Jaipur and tell me the country and region of the Indian result."}
+
+### Replace with a saved trip with a selected location and supported forecast dates
+POST http://localhost:8080/api/v1/ai/chat
+Content-Type: application/json
+
+{"message":"Check this trip's weather.","tripId":"YOUR_TRIP_ID"}

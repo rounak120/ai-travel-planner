@@ -1,5 +1,27 @@
 # Verification
 
+## Model-directed MCP chat milestone (2026-10-08)
+
+- Full Maven suite: **169 tests, zero failures/errors** (`-Ddebug=false test`).
+- Unit checks cover ordinary answers without tools, search round-trip evidence,
+  weather success/error, request-bound trip IDs, invalid inputs, unknown/malformed
+  tools, oversized batches, repeated-call limits, empty answers and safe failures.
+- HTTP integration uses a fake ChatModel and destination service but real REST
+  and MCP HTTP/session exchanges. Checks successful search evidence, invalid JSON
+  and empty messages, and sanitized provider failure. Default profile has no chat.
+- Live Ollama `qwen3:4b` requested `search_destinations` through MCP and returned a
+  final explanation with actual `PROVIDER_UNAVAILABLE` evidence. Open-Meteo search
+  was unavailable during both live checks; no successful live provider result is
+  claimed. Deterministic integration tests cover successful results.
+- Fixed standalone options defaulting to uninstalled `mistral` by preserving
+  `model.getOptions().getModel()`; added a model-selection regression assertion.
+  Native thinking separation prevents this Qwen tag's reasoning appearing in the
+  answer (verified live). Temporary diagnostic logging removed; only failure class
+  names are logged by the service.
+- App runs with `ai,mcp,mcp-client`. No new dependencies, database migrations,
+  trip writes, itinerary generation or chat persistence. Secret scan and
+  `git diff --check` passed.
+
 ## Explicit MCP client milestone (2026-10-06)
 
 - Full Maven suite: **155 tests, zero failures/errors** (`-Ddebug=false test`).

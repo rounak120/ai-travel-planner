@@ -1,5 +1,13 @@
 # AI Travel Planner: architecture and build plan
 
+## Model-directed read-only tools
+
+`POST /api/v1/ai/chat` → `TravelAssistantService` → Ollama → validated tool request
+→ `TravelMcpClient` → HTTP MCP server → existing services → model explanation.
+This opt-in, stateless flow is separate from itinerary generation. It permits two
+tool calls and three model rounds, with weather bound to the request's trip ID.
+Returned tool evidence is separate from generated prose. No writes or chat memory.
+
 ## Explicit local MCP client
 
 With `mcp-client`, `McpClientController` exposes tool discovery, destination search

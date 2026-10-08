@@ -2,6 +2,12 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+`ai/TravelAssistantController.java` exposes stateless chat;
+`ai/TravelAssistantService.java` owns the bounded model/tool loop and request-scoped
+trip binding. `TravelAssistantTests` covers orchestration safety, while
+`TravelAssistantHttpTests` checks the REST-to-MCP path with a fake model and provider.
+See [lesson 14](LESSON_14_MODEL_TOOLS.md).
+
 MCP client additions: `mcp/TravelMcpClient.java` manages lazy SDK connections and
 approved calls; `mcp/McpClientController.java` is the opt-in REST bridge.
 `TravelMcpTests` covers real bridge/MCP calls and `McpClientUnavailableTests`

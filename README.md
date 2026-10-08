@@ -6,7 +6,8 @@ assistant produces an itinerary and revises it with help from travel tools.
 
 The project supports trips, saved itinerary versions, local AI generation,
 destination selection, live weather, and opt-in read-only MCP server/client tools.
-The chat UI and model-directed tool calls remain future steps.
+Model-directed read-only tool calls are available through a stateless chat API;
+the chat UI and conversation memory remain future steps.
 **Trips are now stored in PostgreSQL and survive application restarts.**
 Spring Data JPA handles storage, and Flyway manages the database schema.
 Both the trip API and local AI endpoint need no paid API service or AI key.
@@ -359,7 +360,22 @@ HTTP 200 with `isError: true` means the protocol exchange succeeded but the tool
 failed; check `structuredContent`. Invalid REST input returns 400; MCP connection
 or protocol failures return 502. Keep these unauthenticated endpoints local too.
 
-Current lesson: [Explicit MCP client](docs/LESSON_13_MCP_CLIENT.md).
+## Model-directed travel assistant
+
+With `ai,mcp,mcp-client` active, Ollama can request destination searches and trip
+weather through MCP. No trip or itinerary data is modified.
+
+```bash
+curl -X POST http://localhost:8080/api/v1/ai/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Search Jaipur and tell me its country and region."}'
+```
+
+Optional `tripId` enables weather for that fixed trip. Responses contain `message`
+and actual MCP results in `tools`. Limits: 2,000 input characters, two tool calls,
+three model rounds. No chat history, automatic retries or write tools.
+
+Current lesson: [Model-directed MCP tools](docs/LESSON_14_MODEL_TOOLS.md).
 
 ## Local development boundary
 
