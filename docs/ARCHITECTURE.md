@@ -1,5 +1,13 @@
 # AI Travel Planner: architecture and build plan
 
+## Browser entry point
+
+Spring Boot serves `static/index.html`, `chat.css` and `chat.js` at `/`.
+The page posts a single question to the same-origin `/api/v1/ai/chat` endpoint
+and renders model prose and tool evidence separately as plain text. It maintains
+only a bounded in-page display, not model memory or persistent chat history.
+No frontend build, new controller, database change or additional model capability.
+
 ## Model-directed read-only tools
 
 `POST /api/v1/ai/chat` → `TravelAssistantService` → Ollama → validated tool request

@@ -45,6 +45,17 @@ class AiTravelPlannerApplicationTests {
     }
 
     @Test
+    void servesChatPageAndLocalAssetsWithoutInvokingAi() throws Exception {
+        var page = get("/");
+        assertThat(page.statusCode()).isEqualTo(200);
+        assertThat(page.headers().firstValue("content-type").orElse("")).startsWith("text/html");
+        assertThat(page.body()).contains("Where to next?", "id=\"chat-form\"", "/chat.js", "/chat.css");
+        assertThat(get("/chat.js").statusCode()).isEqualTo(200);
+        assertThat(get("/chat.css").statusCode()).isEqualTo(200);
+        assertThat(get("/api/v1/ai/chat").statusCode()).isEqualTo(404);
+    }
+
+    @Test
     void aiEndpointIsAbsentWithoutAiProfile() throws Exception {
         assertThat(get("/mcp").statusCode()).isEqualTo(404);
         assertThat(get("/api/v1/mcp/tools").statusCode()).isEqualTo(404);

@@ -7,7 +7,7 @@ assistant produces an itinerary and revises it with help from travel tools.
 The project supports trips, saved itinerary versions, local AI generation,
 destination selection, live weather, and opt-in read-only MCP server/client tools.
 Model-directed read-only tool calls are available through a stateless chat API;
-the chat UI and conversation memory remain future steps.
+a local browser chat page is available, while conversation memory remains future work.
 **Trips are now stored in PostgreSQL and survive application restarts.**
 Spring Data JPA handles storage, and Flyway manages the database schema.
 Both the trip API and local AI endpoint need no paid API service or AI key.
@@ -375,7 +375,17 @@ Optional `tripId` enables weather for that fixed trip. Responses contain `messag
 and actual MCP results in `tools`. Limits: 2,000 input characters, two tool calls,
 three model rounds. No chat history, automatic retries or write tools.
 
-Current lesson: [Model-directed MCP tools](docs/LESSON_14_MODEL_TOOLS.md).
+## Browser chat
+
+Open **http://localhost:8080/**. The page uses the existing chat API and displays
+answers separately from expandable MCP evidence. Start the app with
+`ai,mcp,mcp-client` to submit questions. Optional Trip ID enables weather.
+
+Each question is independent; the visible cards are not model memory. The page
+stores nothing, makes no background model calls, and does not modify trips.
+No frontend dependencies or separate build are needed.
+
+Current lesson: [Browser chat UI](docs/LESSON_15_CHAT_UI.md).
 
 ## Local development boundary
 

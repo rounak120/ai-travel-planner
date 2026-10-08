@@ -1,0 +1,51 @@
+:root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #193b38; background: #f6f5ef; line-height: 1.55; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1180px; margin: auto; padding: 32px 40px; }
+header, .section-title, .actions, footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+header { padding-bottom: 26px; border-bottom: 1px solid #d9ded3; }
+.brand { color: inherit; text-decoration: none; font-weight: 800; letter-spacing: 2px; font-size: 16px; }
+.brand span { font-size: 10px; font-weight: 500; letter-spacing: 1px; margin-left: 12px; }
+.badge { font-size: 10px; letter-spacing: 1px; padding: 5px 10px; border: 1px solid #b6c8b8; border-radius: 30px; white-space: nowrap; }
+.intro { padding: 45px 0 30px; }
+.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #517263; }
+h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(40px, 6vw, 64px); line-height: 1.1; margin: 18px 0; letter-spacing: -2px; }
+.intro > p:last-child { color: #526963; max-width: 530px; }
+.layout { display: grid; grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr); gap: 28px; }
+.workspace { background: #fff; border: 1px solid #e0e5dc; border-radius: 20px; padding: 28px; box-shadow: 0 8px 30px #193b3805; }
+h2 { font-size: 19px; font-weight: 600; margin: 0; }
+h3 { font-size: 14px; margin: 20px 0 6px; }
+p { margin: 10px 0; }
+.notice, .hint, .optional { font-size: 12px; color: #5b6e68; }
+.notice { padding-bottom: 18px; border-bottom: 1px solid #ecede8; }
+#conversation { max-height: 580px; overflow-y: auto; overflow-wrap: anywhere; }
+#empty { color: #6d7a70; padding: 26px 0; font-family: Georgia, serif; font-size: 21px; }
+.turn { border-bottom: 1px solid #e6eae2; padding: 16px 0; }
+.turn h3 { margin: 6px 0; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; color: #517263; }
+.turn p, pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.question { padding: 12px 14px; background: #f2f5ef; border-radius: 10px; }
+.evidence { margin: 14px 0; padding: 12px; border: 1px solid #dbe3d5; border-radius: 8px; font-size: 12px; }
+.evidence.failed { border-color: #d9b691; background: #fff9f2; }
+summary { cursor: pointer; font-weight: 600; }
+pre { max-height: 250px; overflow: auto; font-size: 11px; }
+label { display: block; font-size: 13px; font-weight: 600; margin-top: 20px; margin-bottom: 7px; }
+.optional { font-weight: 400; margin-left: 8px; }
+input, textarea { width: 100%; border: 1px solid #bccdc4; background: #fff; border-radius: 9px; padding: 12px; font: inherit; font-size: 14px; color: #193b38; }
+textarea { resize: vertical; min-height: 100px; }
+button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
+button:disabled { cursor: wait; opacity: .6; }
+:focus-visible { outline: 3px solid #a26a18; outline-offset: 3px; }
+#send { background: #24574c; color: #fff; padding: 11px 18px; font-size: 13px; }
+.actions { margin-top: 12px; }
+.quiet { background: transparent; color: #526963; font-size: 12px; text-decoration: underline; padding: 6px; }
+#status { font-size: 13px; min-height: 20px; margin-top: 16px; }
+#status.error { color: #9a351f; }
+aside { background: #eaf0e4; padding: 28px; border-radius: 20px; align-self: start; }
+aside h2 { font-family: Georgia, serif; font-size: 29px; font-weight: 400; margin-bottom: 20px; }
+.suggestion { display: block; text-align: left; width: 100%; background: #ffffff8c; color: #193b38; padding: 16px; margin: 12px 0; border: 1px solid #d1ddca; font-size: 14px; }
+.suggestion span { display: block; font-size: 9px; letter-spacing: 1px; color: #526963; margin-bottom: 8px; }
+.guide p, .setup { font-size: 12px; color: #4c655b; }
+.setup { border-top: 1px solid #cbd7c4; padding-top: 18px; margin-top: 24px; }
+code { overflow-wrap: anywhere; }
+footer { font-size: 10px; color: #65756c; margin-top: 30px; }
+@media (max-width: 760px) { main { padding: 22px 18px; } .layout { grid-template-columns: 1fr; } .workspace, aside { padding: 20px; } .brand span, footer span { display: none; } .intro { padding-top: 30px; } }

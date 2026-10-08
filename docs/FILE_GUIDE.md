@@ -2,6 +2,11 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+`src/main/resources/static/` contains the browser chat page (`index.html`), styles
+(`chat.css`), and API/rendering code (`chat.js`). `src/test/ui/chat-ui.test.js`
+exercises the real page with controlled HTTP responses, launched through installed
+Chrome by `scripts/test_chat_ui.py`. See [lesson 15](LESSON_15_CHAT_UI.md).
+
 `ai/TravelAssistantController.java` exposes stateless chat;
 `ai/TravelAssistantService.java` owns the bounded model/tool loop and request-scoped
 trip binding. `TravelAssistantTests` covers orchestration safety, while

@@ -1,5 +1,24 @@
 # Verification
 
+## Browser chat milestone (2026-10-08)
+
+- Full Maven suite: **170 tests, zero failures/errors**. New HTTP check verifies
+  homepage/CSS/JS delivery while the AI profile is disabled and chat remains absent.
+- Headless Chrome: **20 browser assertions passed at desktop and narrow sizes**.
+  Tests use real UI assets and controlled fetch responses: blank/invalid UUID
+  validation, suggestion buttons, pending duplicate prevention, optional trip ID,
+  same-origin POST, safe user/model/tool text, tool success/error evidence, no-tool
+  labels, HTTP 404/502/malformed responses, network failure, clear and overflow.
+- Inspected a desktop screenshot of the live homepage. Restarted the app with
+  `ai,mcp,mcp-client` and confirmed `/` serves the page. No live model/provider
+  call was needed for UI verification; the previous backend integration remains
+  covered by the Java suite. No claim of a new successful live provider lookup.
+- Browser runner uses a temporary loopback server and isolated Chrome profile;
+  it reads the completed DOM report and cleans up its own browser process group
+  to avoid macOS helper processes retaining output pipes.
+- No new dependency, schema change, trip write or chat persistence. Secret scan
+  and `git diff --check` passed.
+
 ## Model-directed MCP chat milestone (2026-10-08)
 
 - Full Maven suite: **169 tests, zero failures/errors** (`-Ddebug=false test`).
