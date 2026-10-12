@@ -2,6 +2,12 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+`static/trips.html` and `static/trips.js` (under `src/main/resources`) provide trip
+creation, field errors, saved-ID display and chat handoff. `src/test/ui/trip-ui.test.js`
+tests the form with mocked responses using the existing browser runner. The chat
+script validates the optional `tripId` query parameter for prefill only. See
+[lesson 17](LESSON_17_TRIP_FORM.md).
+
 `weather/WeatherEligibilityException.java` carries safe, typed weather validation
 reasons and date context. REST and MCP preserve those fields; the assistant returns
 these two errors directly to avoid model misinterpretation. See

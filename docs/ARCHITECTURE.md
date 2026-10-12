@@ -1,5 +1,12 @@
 # AI Travel Planner: architecture and build plan
 
+## Browser trip creation
+
+`static/trips.html` and `trips.js` use the existing POST trip API. Only an explicit
+form submission saves data; no model is involved. The returned UUID links to chat
+via a validated query parameter, without automatic submission or provider calls.
+Selected-location and itinerary workflows remain separate.
+
 ## Weather validation errors
 
 `WeatherEligibilityException` carries an application-owned code and safe context

@@ -16,6 +16,8 @@
   let response = reply(200, { message: "Hello", tools: [] });
   window.fetch = async (url, options) => { requests.push({ url, options }); return response; };
   try {
+    const linked = new URLSearchParams(window.location.search).get("tripId");
+    if (linked) check(get("#trip-id").value === linked && requests.length === 0, "linked trip prefilled without requests");
     check(document.documentElement.scrollWidth <= window.innerWidth, "layout has no horizontal overflow");
     get("#message").value = "   "; submit();
     check(requests.length === 0 && get("#status").textContent.includes("1–2000"), "blank message blocked");

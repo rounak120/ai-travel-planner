@@ -40,6 +40,11 @@ button:disabled { cursor: wait; opacity: .6; }
 .quiet { background: transparent; color: #526963; font-size: 12px; text-decoration: underline; padding: 6px; }
 #status { font-size: 13px; min-height: 20px; margin-top: 16px; }
 #status.error { color: #9a351f; }
+#trip-status.error, #trip-errors { color: #9a351f; }
+#trip-status { margin-top: 18px; }
+#save-trip, #another-trip { background: #24574c; color: #fff; padding: 11px 18px; font-size: 13px; }
+#saved-trip { margin-top: 24px; border-top: 1px solid #dbe3d5; padding-top: 20px; }
+a { color: #24574c; }
 aside { background: #eaf0e4; padding: 28px; border-radius: 20px; align-self: start; }
 aside h2 { font-family: Georgia, serif; font-size: 29px; font-weight: 400; margin-bottom: 20px; }
 .suggestion { display: block; text-align: left; width: 100%; background: #ffffff8c; color: #193b38; padding: 16px; margin: 12px 0; border: 1px solid #d1ddca; font-size: 14px; }

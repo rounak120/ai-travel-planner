@@ -377,6 +377,11 @@ three model rounds. No chat history, automatic retries or write tools.
 
 ## Browser chat
 
+Create a saved trip at **http://localhost:8080/trips.html**, then open it in chat
+with its ID prefilled. This uses the existing trip API and does not invoke AI.
+A saved destination name still needs a location selection before weather works.
+See [Lesson 17: trip creation form](docs/LESSON_17_TRIP_FORM.md).
+
 Open **http://localhost:8080/**. The page uses the existing chat API and displays
 answers separately from expandable MCP evidence. Start the app with
 `ai,mcp,mcp-client` to submit questions. Optional Trip ID enables weather.

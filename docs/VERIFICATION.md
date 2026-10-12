@@ -1,5 +1,22 @@
 # Verification
 
+## Browser trip creation (2026-10-12)
+
+- Maven suite: **175 tests, zero failures/errors**. Static asset checks include
+  `/trips.html` and `/trips.js`. New test posts the browser's decimal-string budget
+  at the maximum accepted amount and verifies exact persistence/retrieval.
+- Trip UI: **18 browser assertions passed at desktop and narrow sizes**, covering
+  required fields, date order, interests, payload normalization, exact budget text,
+  pending and post-success duplicate prevention, saved UUID links, safe rendering,
+  API validation, malformed success and ambiguous network outcomes.
+- Chat UI: **21 assertions passed**, including valid trip query-parameter prefill
+  without an automatic API request, plus existing chat behavior.
+- Inspected the live trip-page desktop screenshot. App restarted with
+  `ai,mcp,mcp-client`; no live development trip was created. Browser tests use fake
+  API responses; persistence tests create and remove only their own test-DB trips.
+- No backend business-rule change, new dependencies, migration, AI write tools or
+  location auto-selection. Secret scan and `git diff --check` passed.
+
 ## Precise weather errors (2026-10-08)
 
 - Full Maven suite: **174 tests, zero failures/errors**.

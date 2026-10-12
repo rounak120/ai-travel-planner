@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create a trip · Wayfarer</title>
+  <link rel="stylesheet" href="/chat.css"><script src="/trips.js" defer></script>
+</head>
+<body><main>
+  <header><a class="brand" href="/">WAYFARER <span>/ AI TRAVEL PLANNER</span></a><a href="/">Back to chat</a></header>
+  <section class="intro"><p class="eyebrow">MAKE ROOM FOR YOUR NEXT ADVENTURE</p><h1>Create your trip.</h1><p>Save your destination, dates and budget. You’re in control—AI does not create or change this trip.</p></section>
+  <div class="layout">
+    <section class="workspace" aria-labelledby="form-heading">
+      <h2 id="form-heading">Trip details</h2>
+      <form id="trip-form">
+        <label for="destination">Destination</label><input id="destination" required maxlength="200" placeholder="Jaipur">
+        <label for="start-date">Start date</label><input id="start-date" type="date" required>
+        <label for="end-date">End date</label><input id="end-date" type="date" required>
+        <label for="travelers">Travelers</label><input id="travelers" type="number" required min="1" max="100" step="1" value="2">
+        <label for="budget">Total trip budget</label><input id="budget" type="number" required min="0.01" max="999999999999.99" step="0.01" placeholder="5000.00">
+        <label for="currency">Currency code</label><input id="currency" required maxlength="3" pattern="[A-Za-z]{3}" value="INR" aria-describedby="currency-help"><p id="currency-help" class="hint">Three-letter currency code, such as INR, USD or EUR.</p>
+        <label for="interests">Interests <span class="optional">optional · separated by commas</span></label><input id="interests" maxlength="1619" placeholder="history, food, architecture"><p class="hint">Up to 20 interests, each at most 80 characters.</p>
+        <div class="actions"><span class="hint">This saves a trip in PostgreSQL.</span><button id="save-trip" type="submit">Create trip ↗</button></div>
+      </form>
+      <p id="trip-status" role="status" aria-live="polite"></p><ul id="trip-errors" aria-label="Validation errors"></ul>
+      <section id="saved-trip" hidden aria-labelledby="saved-heading"><h2 id="saved-heading">Trip saved</h2><p id="saved-summary"></p><label for="saved-id">Your trip ID</label><input id="saved-id" readonly><p class="hint">Keep this ID to retrieve your trip later. This page does not store it in browser storage.</p><p><a id="open-chat" href="/">Open this trip in chat ↗</a></p><p><a id="open-trip" href="/">View saved trip JSON</a></p><button id="another-trip" type="button">Create another trip</button></section>
+      <noscript>Enable JavaScript to use this form, or create a trip with the REST API.</noscript>
+    </section>
+    <aside><p class="eyebrow">ONE STEP AT A TIME</p><h2>From idea to itinerary.</h2><div class="guide"><h3>1. Save the basics</h3><p>Creating a trip stores your preferences. It does not generate an itinerary or call an AI model.</p><h3>2. Select a location</h3><p>A destination name is not a verified location. Weather requires a saved location selection through our existing API; a selection UI comes next.</p><h3>3. Ask the assistant</h3><p>Open chat with the new trip ID prefilled. Weather also requires every trip date within the current 16-day forecast window.</p></div></aside>
+  </div><footer>Local development only · No bookings or payments</footer>
+</main></body></html>

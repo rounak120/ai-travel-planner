@@ -102,6 +102,16 @@ class TripApiTests {
         assertThat(JSON.readTree(fetched.body())).isEqualTo(JSON.readTree(created.body()));
     }
 
+    @Test
+    void acceptsExactDecimalBudgetFromBrowserForm() throws Exception {
+        var request = validTrip();
+        request.put("budget", "999999999999.99");
+        var created = post(JSON.writeValueAsString(request));
+        assertThat(created.statusCode()).isEqualTo(201);
+        var fetched = get(created.headers().firstValue("location").orElseThrow());
+        assertThat(JSON.readTree(fetched.body()).get("budget").decimalValue()).isEqualByComparingTo("999999999999.99");
+    }
+
     @ParameterizedTest(name = "rejects invalid {0}: {1}")
     @MethodSource("invalidFields")
     void rejectsInvalidFields(String field, Object value, String errorField) throws Exception {

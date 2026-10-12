@@ -8,6 +8,10 @@ const status = document.querySelector("#status");
 const count = document.querySelector("#count");
 const send = document.querySelector("#send");
 let pending = false;
+const linkedTrip = new URLSearchParams(window.location.search).get("tripId");
+if (linkedTrip && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(linkedTrip)) {
+  tripId.value = linkedTrip; // Prefill only; never submit or call a provider on navigation.
+}
 
 function setStatus(text, error = false) {
   status.textContent = text;

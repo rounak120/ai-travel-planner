@@ -9,6 +9,7 @@ import os
 import re
 import signal
 import time
+from urllib.parse import urlsplit
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 STATIC = ROOT / "src/main/resources/static"
@@ -22,14 +23,20 @@ class Handler(http.server.BaseHTTPRequestHandler):
             "/chat.js": (STATIC / "chat.js", "text/javascript"),
             "/chat.css": (STATIC / "chat.css", "text/css"),
             "/ui-test.js": (ROOT / "src/test/ui/chat-ui.test.js", "text/javascript"),
+            "/trips.html": (STATIC / "trips.html", "text/html"),
+            "/trips.js": (STATIC / "trips.js", "text/javascript"),
+            "/trip-ui-test.js": (ROOT / "src/test/ui/trip-ui.test.js", "text/javascript"),
         }
-        if self.path not in routes:
+        request_path = urlsplit(self.path).path
+        if request_path not in routes:
             self.send_error(404)
             return
-        path, content_type = routes[self.path]
+        path, content_type = routes[request_path]
         body = path.read_text()
-        if self.path == "/":
+        if request_path == "/":
             body = body.replace("</head>", '<script src="/ui-test.js" defer></script></head>')
+        if request_path == "/trips.html":
+            body = body.replace("</head>", '<script src="/trip-ui-test.js" defer></script></head>')
         data = body.encode()
         self.send_response(200)
         self.send_header("Content-Type", content_type + "; charset=utf-8")
@@ -44,6 +51,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
 if __name__ == "__main__":
     chrome = sys.argv[1] if len(sys.argv) > 1 else CHROME
     window_size = sys.argv[2] if len(sys.argv) > 2 else "1280,1000"
+    page = sys.argv[3] if len(sys.argv) > 3 else "/"
+    if urlsplit(page).path not in ("/", "/trips.html") or not page.startswith("/") or page.startswith("//"):
+        raise SystemExit("Choose / or /trips.html")
     with http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
@@ -57,7 +67,7 @@ if __name__ == "__main__":
                         "--disable-background-networking", f"--user-data-dir={profile}",
                         f"--window-size={window_size}",
                         "--dump-dom", "--timeout=15000", "--virtual-time-budget=5000",
-                        f"http://127.0.0.1:{server.server_port}/",
+                        f"http://127.0.0.1:{server.server_port}{page}",
                     ], stdout=output, stderr=subprocess.DEVNULL, start_new_session=True)
                     match = None
                     try:
