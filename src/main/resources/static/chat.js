@@ -12,6 +12,13 @@ const linkedTrip = new URLSearchParams(window.location.search).get("tripId");
 if (linkedTrip && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(linkedTrip)) {
   tripId.value = linkedTrip; // Prefill only; never submit or call a provider on navigation.
 }
+function updateLocationLink() {
+  const id = tripId.value.trim();
+  document.querySelector("#select-location-link").href = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+    ? `/location.html?tripId=${encodeURIComponent(id)}` : "/location.html";
+}
+tripId.addEventListener("input", updateLocationLink);
+updateLocationLink();
 
 function setStatus(text, error = false) {
   status.textContent = text;

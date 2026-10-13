@@ -26,6 +26,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
             "/trips.html": (STATIC / "trips.html", "text/html"),
             "/trips.js": (STATIC / "trips.js", "text/javascript"),
             "/trip-ui-test.js": (ROOT / "src/test/ui/trip-ui.test.js", "text/javascript"),
+            "/location.html": (STATIC / "location.html", "text/html"),
+            "/location.js": (STATIC / "location.js", "text/javascript"),
+            "/location-ui-test.js": (ROOT / "src/test/ui/location-ui.test.js", "text/javascript"),
         }
         request_path = urlsplit(self.path).path
         if request_path not in routes:
@@ -37,6 +40,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             body = body.replace("</head>", '<script src="/ui-test.js" defer></script></head>')
         if request_path == "/trips.html":
             body = body.replace("</head>", '<script src="/trip-ui-test.js" defer></script></head>')
+        if request_path == "/location.html":
+            body = body.replace("</head>", '<script src="/location-ui-test.js" defer></script></head>')
         data = body.encode()
         self.send_response(200)
         self.send_header("Content-Type", content_type + "; charset=utf-8")
@@ -52,8 +57,8 @@ if __name__ == "__main__":
     chrome = sys.argv[1] if len(sys.argv) > 1 else CHROME
     window_size = sys.argv[2] if len(sys.argv) > 2 else "1280,1000"
     page = sys.argv[3] if len(sys.argv) > 3 else "/"
-    if urlsplit(page).path not in ("/", "/trips.html") or not page.startswith("/") or page.startswith("//"):
-        raise SystemExit("Choose / or /trips.html")
+    if urlsplit(page).path not in ("/", "/trips.html", "/location.html") or not page.startswith("/") or page.startswith("//"):
+        raise SystemExit("Choose /, /trips.html or /location.html")
     with http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()

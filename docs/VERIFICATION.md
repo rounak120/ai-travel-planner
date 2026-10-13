@@ -1,5 +1,22 @@
 # Verification
 
+## Browser destination selection (2026-10-13)
+
+- Java suite: **175 tests, zero failures/errors**, including delivery of the new
+  page/script and existing backend location validation/persistence coverage.
+- Location UI: **20 browser assertions passed at desktop and narrow sizes**.
+  Covered no automatic request/selection, invalid UUID, read-only load, current or
+  missing selection, candidate details and safe rendering, explicit one-shot PUT,
+  captured query/ID payload, stale query/trip invalidation, empty/error search,
+  stale-result save rejection, ambiguous network save, and missing trip.
+- Existing browser regressions: **19 trip-form assertions** and **22 chat
+  assertions**, including trip-specific links to location selection.
+- Restarted local app with existing profiles and inspected a desktop screenshot
+  of the served page. Browser tests use mocked responses; no live location PUT,
+  trip writes, provider lookup or model call was performed for this milestone.
+- No backend rule change, dependency, migration or AI write capability.
+  Secret scan and `git diff --check` passed.
+
 ## Browser trip creation (2026-10-12)
 
 - Maven suite: **175 tests, zero failures/errors**. Static asset checks include

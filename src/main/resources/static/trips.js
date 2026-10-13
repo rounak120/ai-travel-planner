@@ -49,6 +49,7 @@ tripForm.addEventListener("submit", async event => {
     field("saved-id").value = data.id;
     field("saved-summary").textContent = `${data.destination} · ${data.startDate} to ${data.endDate} · ${data.travelers} travelers`;
     field("open-chat").href = `/?tripId=${encodeURIComponent(data.id)}`;
+    field("select-location").href = `/location.html?tripId=${encodeURIComponent(data.id)}`;
     field("open-trip").href = `/api/v1/trips/${encodeURIComponent(data.id)}`;
     savedTrip.hidden = false;
     reportTrip("Trip saved. A verified location is still needed for weather.");

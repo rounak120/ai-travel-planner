@@ -33,6 +33,7 @@
     check(!get("saved-trip").hidden && get("saved-id").value === id, "ID and success visible");
     check(!get("saved-summary").querySelector("img") && !window.injected, "returned content rendered as text");
     check(get("open-chat").getAttribute("href") === `/?tripId=${id}`, "chat link binds saved ID");
+    check(get("select-location").getAttribute("href") === `/location.html?tripId=${id}`, "location link binds saved ID");
     check(get("open-trip").getAttribute("href") === `/api/v1/trips/${id}`, "retrieval link binds saved ID");
     submit(); check(requests.length === 1, "success locks duplicate creation");
     get("another-trip").click(); check(get("saved-trip").hidden && !get("save-trip").disabled, "explicit new trip resets UI");

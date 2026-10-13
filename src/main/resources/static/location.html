@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Select a location · Wayfarer</title><link rel="stylesheet" href="/chat.css"><script src="/location.js" defer></script>
+</head><body><main>
+  <header><a class="brand" href="/">WAYFARER <span>/ AI TRAVEL PLANNER</span></a><a href="/trips.html">Create a trip</a></header>
+  <section class="intro"><p class="eyebrow">THE RIGHT PLACE, NOT JUST A NAME</p><h1>Pin down your destination.</h1><p>Choose the exact location for a saved trip. Review the country, region and timezone before saving.</p></section>
+  <div class="layout"><section class="workspace" aria-labelledby="location-heading">
+    <h2 id="location-heading">Select a location</h2>
+    <form id="load-trip-form"><label for="location-trip-id">Saved trip ID</label><input id="location-trip-id" required maxlength="36" autocomplete="off" spellcheck="false"><div class="actions"><span class="hint">Loading reads your trip and saved location only.</span><button id="load-trip" type="submit">Load trip</button></div></form>
+    <section id="trip-context" hidden><h3>Your trip</h3><p id="location-trip-summary"></p><h3>Currently saved location</h3><p id="current-location"></p><p id="current-attribution" class="hint"></p></section>
+    <form id="search-location-form"><label for="location-query">Search destinations</label><input id="location-query" required minlength="2" maxlength="100" disabled placeholder="Jaipur"><div class="actions"><span class="hint">Search text is sent to Open-Meteo.</span><button id="search-location" type="submit" disabled>Search</button></div></form>
+    <fieldset id="location-results" hidden><legend>Choose one result</legend><div id="location-candidates"></div><p id="search-attribution" class="hint"></p></fieldset>
+    <p class="notice">Saving replaces any currently selected location for this trip. It does not change trip dates or previously saved itineraries.</p>
+    <button id="save-location" type="button" disabled>Save selected location</button>
+    <p id="location-status" role="status" aria-live="polite"></p><p><a id="location-chat" href="/" hidden>Open this trip in chat ↗</a></p>
+    <noscript>Enable JavaScript or use the location REST API.</noscript>
+  </section><aside><p class="eyebrow">BEFORE YOU SAVE</p><h2>Names can repeat.</h2><div class="guide"><h3>Check the country and region</h3><p>Several places can share the same name. We never select the first match automatically.</p><h3>Check the timezone</h3><p>Weather requires a valid location timezone. A location with no timezone can still be saved, but will not support weather.</p><h3>Dates still matter</h3><p>All trip dates must be within the current forecast window. Selecting a location will not make a past trip eligible.</p><h3>Server-verified selection</h3><p>When you save, the server searches again and verifies your chosen place ID before storing it.</p></div></aside></div>
+  <footer>Local development only · Read-only AI, explicit user saves</footer>
+</main></body></html>

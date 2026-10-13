@@ -2,6 +2,11 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+`src/main/resources/static/location.html` and `location.js` provide trip loading,
+location search, explicit selection and save. `src/test/ui/location-ui.test.js`
+checks state invalidation, read/write separation, error recovery and safe rendering.
+Trip creation and chat link to this page. See [lesson 18](LESSON_18_LOCATION_UI.md).
+
 `static/trips.html` and `static/trips.js` (under `src/main/resources`) provide trip
 creation, field errors, saved-ID display and chat handoff. `src/test/ui/trip-ui.test.js`
 tests the form with mocked responses using the existing browser runner. The chat

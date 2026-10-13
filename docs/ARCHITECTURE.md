@@ -1,5 +1,12 @@
 # AI Travel Planner: architecture and build plan
 
+## Browser destination selection
+
+`static/location.html` and `location.js` use existing trip/location GETs,
+destination search GET, and location PUT. Only an explicit user save replaces the
+selected location. Java revalidates the returned ID against a fresh search before
+storage. Editing the trip/query invalidates browser candidates. No AI involvement.
+
 ## Browser trip creation
 
 `static/trips.html` and `trips.js` use the existing POST trip API. Only an explicit

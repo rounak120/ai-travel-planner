@@ -377,6 +377,11 @@ three model rounds. No chat history, automatic retries or write tools.
 
 ## Browser chat
 
+Select the exact destination at **http://localhost:8080/location.html**: load a
+saved trip, search, review country/region, then explicitly save one result.
+Trip creation and chat both link to this page. No automatic location selection
+or AI writes. See [Lesson 18: location selection UI](docs/LESSON_18_LOCATION_UI.md).
+
 Create a saved trip at **http://localhost:8080/trips.html**, then open it in chat
 with its ID prefilled. This uses the existing trip API and does not invoke AI.
 A saved destination name still needs a location selection before weather works.
