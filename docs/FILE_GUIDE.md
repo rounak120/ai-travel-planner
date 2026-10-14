@@ -2,6 +2,14 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+The connected frontend uses `src/main/resources/static/app.js` for shared
+navigation, trip context, request/export helpers and opt-in browser shortcuts.
+`dashboard.html`/`dashboard.js` show saved trip details; `weather.html`/`weather.js`
+show direct forecast data and eligibility errors. `chat.css` supplies responsive
+workspace and print styles. New `src/test/ui/dashboard-ui.test.js` and
+`weather-ui.test.js` are run by `scripts/test_chat_ui.py`, alongside the four
+existing screen suites. See [frontend guide](FRONTEND_GUIDE.md).
+
 `static/itinerary.js` now also handles ten-entry history pages and trip-scoped
 snapshot viewing. `itinerary-ui.test.js` covers cursor pagination, exact historical
 context, errors and state resets alongside generation. See

@@ -1,5 +1,22 @@
 # Verification
 
+## Connected frontend (2026-10-14)
+
+- Java regression suite: **175 tests, zero failures/errors**; static delivery
+  checks include shared navigation, overview and weather assets.
+- All six browser suites passed at desktop (1280px) and narrow (390px) widths: overview 19,
+  weather 14, chat 23, trip creation 19, location 21, itinerary 34 assertions
+  (**130 per layout, 260 total**).
+- New checks include explicit-only reads, invalid IDs, busy guards, safe text,
+  shared navigation context, opt-in shortcut save/remove, JSON export, empty and
+  corrupt storage, forecast null/zero distinction, exact 422 explanations,
+  stale-forecast removal and HTTP/network recovery.
+- Browser checks use fake API responses and isolated storage; Java tests use the
+  test database. No live trip, location or itinerary was created or changed.
+- Narrow checks use a 390px same-origin iframe to avoid macOS Chrome's minimum
+  top-level viewport width. The desktop overview was also visually inspected.
+- No dependency, backend behavior or database schema changes.
+
 ## Browser itinerary history (2026-10-14)
 
 - Java regression suite: **175 tests, zero failures/errors**. No backend changes.

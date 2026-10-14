@@ -58,6 +58,11 @@ class AiTravelPlannerApplicationTests {
         assertThat(get("/location.js").statusCode()).isEqualTo(200);
         assertThat(get("/itinerary.html").body()).contains("id=\"plan-load-form\"", "/itinerary.js");
         assertThat(get("/itinerary.js").statusCode()).isEqualTo(200);
+        assertThat(get("/app.js").statusCode()).isEqualTo(200);
+        assertThat(get("/dashboard.html").body()).contains("id=\"overview-form\"", "/dashboard.js");
+        assertThat(get("/dashboard.js").statusCode()).isEqualTo(200);
+        assertThat(get("/weather.html").body()).contains("id=\"weather-form\"", "/weather.js");
+        assertThat(get("/weather.js").statusCode()).isEqualTo(200);
         assertThat(get("/api/v1/ai/chat").statusCode()).isEqualTo(404);
     }
 

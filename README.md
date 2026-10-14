@@ -7,7 +7,7 @@ assistant produces an itinerary and revises it with help from travel tools.
 The project supports trips, saved itinerary versions, local AI generation,
 destination selection, live weather, and opt-in read-only MCP server/client tools.
 Model-directed read-only tool calls are available through a stateless chat API;
-a local browser chat page is available, while conversation memory remains future work.
+a connected browser frontend is available, while conversation memory remains future work.
 **Trips are now stored in PostgreSQL and survive application restarts.**
 Spring Data JPA handles storage, and Flyway manages the database schema.
 Both the trip API and local AI endpoint need no paid API service or AI key.
@@ -68,8 +68,31 @@ Open http://localhost:8080/actuator/health for operational health:
 {"status":"UP"}
 ```
 
-`requests.http` contains status, health, and trip examples for IDE HTTP clients. `/` has no page
-yet, so a 404 at http://localhost:8080/ is expected. Stop the server with Ctrl+C.
+`requests.http` contains status, health, and trip examples for IDE HTTP clients.
+Open http://localhost:8080/dashboard.html for the travel workspace; `/` remains
+the AI assistant. Stop the server with Ctrl+C.
+
+## Complete browser frontend
+
+The shared navigation connects trip creation, saved trip details, location selection,
+weather, AI chat, and itinerary generation/history. Pages are responsive and served
+by Spring Boot; no Node build, paid UI service, or external font is needed.
+Trip JSON and the viewed itinerary snapshot can be downloaded; itineraries can
+also be printed using the browser's print/save-as-PDF dialog.
+
+The overview opens trips by ID. Optional browser shortcuts store only the trip ID
+and destination locally; they are not a database-wide trip list. Removing a
+shortcut does not delete the trip. There are no account, booking, trip editing,
+or trip deletion endpoints, so the frontend does not offer those operations.
+
+For all AI features, start with the existing local profiles:
+
+```bash
+./mvnw -Dspring-boot.run.profiles=ai,mcp,mcp-client spring-boot:run
+```
+
+See [frontend guide](docs/FRONTEND_GUIDE.md) for routes, data flow, limitations,
+and deterministic browser checks. This unauthenticated app is for local use only.
 
 ## Test and package
 

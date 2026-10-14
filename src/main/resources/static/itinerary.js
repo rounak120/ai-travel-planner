@@ -58,8 +58,14 @@ function showPlan(plan, id, label = "Latest saved plan at load time") {
   }
   const evidence = planNode("details", "", "evidence"); evidence.append(planNode("summary", "Full saved snapshot and attribution"), planNode("pre", JSON.stringify(plan, null, 2))); fragment.append(evidence);
   planEl("plan-output").replaceChildren(fragment); planEl("plan-output").hidden = false;
+  const exports = planNode("div", "", "export-actions");
+  const download = planNode("button", "Download this snapshot", "secondary"); download.type = "button";
+  download.addEventListener("click", () => window.Wayfarer.download(plan, `itinerary-${id}.json`));
+  const print = planNode("button", "Print viewed plan", "quiet"); print.type = "button"; print.addEventListener("click", () => window.print());
+  exports.append(download, print); planEl("plan-output").append(exports);
 }
 planEl("plan-trip-id").addEventListener("input", () => {
+  window.Wayfarer?.setTrip(null);
   resetHistory();
   planTrip = null; planEl("plan-confirm").checked = false; planEl("plan-trip").hidden = true;
   planEl("plan-output").hidden = true; planEl("plan-output").replaceChildren(); planControls(); planStatus("Load the trip before generating.");
@@ -70,12 +76,14 @@ planEl("plan-load-form").addEventListener("submit", async event => {
   const id = planEl("plan-trip-id").value.trim();
   if (!planUuid(id)) { planStatus("Enter a complete trip UUID.", true); return; }
   planBusy = true; planTrip = null; planEl("plan-confirm").checked = false; planControls();
+  window.Wayfarer?.setTrip(null);
   resetHistory();
   planEl("plan-trip").hidden = true; planEl("plan-output").hidden = true; planEl("plan-output").replaceChildren(); planStatus("Loading saved trip and latest plan…");
   try {
     const trip = await planRequest(`/api/v1/trips/${id}`);
     if (trip.id?.toLowerCase() !== id.toLowerCase()) throw new Error("Unexpected trip response.");
     planTrip = trip; planEl("plan-trip-summary").textContent = `${trip.destination} · ${trip.startDate} to ${trip.endDate} · ${trip.travelers} travelers`;
+    window.Wayfarer?.setTrip(trip);
     planEl("plan-trip").hidden = false;
     planEl("plan-location-link").href = `/location.html?tripId=${encodeURIComponent(id)}`; planEl("plan-chat-link").href = `/?tripId=${encodeURIComponent(id)}`;
     try { showPlan(await planRequest(`/api/v1/trips/${id}/itinerary`), id); planStatus("Latest saved plan loaded. No AI call or weather refresh was made."); }

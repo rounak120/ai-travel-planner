@@ -1,5 +1,14 @@
 # AI Travel Planner: architecture and build plan
 
+## Connected browser workspace
+
+Six same-origin screens share `app.js` navigation and `chat.css` responsive styles.
+The overview opens saved trip details, direct weather avoids model interpretation,
+and existing create/location/chat/itinerary workflows remain API-backed. Trip IDs
+travel in validated URL parameters. Browser-local shortcuts are explicit opt-in
+and are not a substitute for a server trip-list endpoint. JSON exports and print
+operate on already-loaded data. See [frontend guide](FRONTEND_GUIDE.md).
+
 ## Browser itinerary history
 
 The itinerary page reads version metadata in ten-entry cursor pages, then fetches

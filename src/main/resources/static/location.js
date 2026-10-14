@@ -46,6 +46,7 @@ function locationFailure(error, saving = false) {
     : error.message, true);
 }
 loc("location-trip-id").addEventListener("input", () => {
+  window.Wayfarer?.setTrip(null);
   loc("location-itinerary").hidden = true;
   loadedTrip = null; loc("trip-context").hidden = true; loc("location-chat").hidden = true;
   clearCandidates(); locationStatus("Load this trip before searching or saving.");
@@ -57,6 +58,7 @@ loc("load-trip-form").addEventListener("submit", async event => {
   const id = loc("location-trip-id").value.trim();
   if (!uuid(id)) { locationStatus("Enter a complete trip UUID.", true); return; }
   loadedTrip = null; clearCandidates(); loc("trip-context").hidden = true; loc("location-chat").hidden = true;
+  window.Wayfarer?.setTrip(null);
   loc("location-itinerary").hidden = true;
   locationBusy = true; locationControls(); locationStatus("Loading trip and saved location…");
   try {
@@ -67,6 +69,7 @@ loc("load-trip-form").addEventListener("submit", async event => {
     if (typeof trip.id !== "string" || trip.id.toLowerCase() !== id.toLowerCase()
         || (selection && (!selection.place || selection.tripId?.toLowerCase() !== id.toLowerCase()))) throw new Error("Unexpected trip or location response.");
     loadedTrip = trip;
+    window.Wayfarer?.setTrip(trip);
     loc("location-trip-summary").textContent = `${trip.destination} · ${trip.startDate} to ${trip.endDate}`;
     loc("location-query").value = String(trip.destination).slice(0, 100);
     showCurrent(selection); loc("trip-context").hidden = false;

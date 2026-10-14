@@ -9,7 +9,8 @@ import os
 import re
 import signal
 import time
-from urllib.parse import urlsplit
+import html
+from urllib.parse import urlsplit, parse_qs, urlencode
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 STATIC = ROOT / "src/main/resources/static"
@@ -18,8 +19,35 @@ CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
+        if urlsplit(self.path).path == "/__viewport":
+            # macOS Chrome can clamp the top-level viewport to 500px. A same-origin
+            # iframe guarantees the requested CSS viewport for narrow-screen tests.
+            query = parse_qs(urlsplit(self.path).query)
+            width = max(280, min(2000, int(query.get("width", ["390"])[0])))
+            target = html.escape(query.get("page", ["/"])[0], quote=True)
+            body = f'''<!doctype html><html><body style="margin:0">
+<iframe title="Test viewport" style="width:{width}px;height:1000px;border:0" src="{target}"></iframe>
+<script>const timer=setInterval(()=>{{
+const result=document.querySelector('iframe').contentDocument?.getElementById('test-result');
+if(result && /^(PASS|FAIL):/.test(result.textContent)){{
+const copy=document.createElement('pre');copy.id='test-result';copy.textContent=result.textContent;
+document.body.append(copy);clearInterval(timer);
+}}}},20);</script></body></html>'''.encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         routes = {
             "/": (STATIC / "index.html", "text/html"),
+            "/app.js": (STATIC / "app.js", "text/javascript"),
+            "/dashboard.html": (STATIC / "dashboard.html", "text/html"),
+            "/dashboard.js": (STATIC / "dashboard.js", "text/javascript"),
+            "/dashboard-ui-test.js": (ROOT / "src/test/ui/dashboard-ui.test.js", "text/javascript"),
+            "/weather.html": (STATIC / "weather.html", "text/html"),
+            "/weather.js": (STATIC / "weather.js", "text/javascript"),
+            "/weather-ui-test.js": (ROOT / "src/test/ui/weather-ui.test.js", "text/javascript"),
             "/chat.js": (STATIC / "chat.js", "text/javascript"),
             "/chat.css": (STATIC / "chat.css", "text/css"),
             "/ui-test.js": (ROOT / "src/test/ui/chat-ui.test.js", "text/javascript"),
@@ -47,6 +75,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             body = body.replace("</head>", '<script src="/location-ui-test.js" defer></script></head>')
         if request_path == "/itinerary.html":
             body = body.replace("</head>", '<script src="/itinerary-ui-test.js" defer></script></head>')
+        if request_path == "/dashboard.html":
+            body = body.replace("</head>", '<script src="/dashboard-ui-test.js" defer></script></head>')
+        if request_path == "/weather.html":
+            body = body.replace("</head>", '<script src="/weather-ui-test.js" defer></script></head>')
         data = body.encode()
         self.send_response(200)
         self.send_header("Content-Type", content_type + "; charset=utf-8")
@@ -62,8 +94,11 @@ if __name__ == "__main__":
     chrome = sys.argv[1] if len(sys.argv) > 1 else CHROME
     window_size = sys.argv[2] if len(sys.argv) > 2 else "1280,1000"
     page = sys.argv[3] if len(sys.argv) > 3 else "/"
-    if urlsplit(page).path not in ("/", "/trips.html", "/location.html", "/itinerary.html") or not page.startswith("/") or page.startswith("//"):
-        raise SystemExit("Choose /, /trips.html, /location.html or /itinerary.html")
+    if urlsplit(page).path not in ("/", "/dashboard.html", "/weather.html", "/trips.html", "/location.html", "/itinerary.html") or not page.startswith("/") or page.startswith("//"):
+        raise SystemExit("Choose a supported frontend page")
+    width = int(window_size.split(",")[0])
+    if width < 500:
+        page = "/__viewport?" + urlencode({"width": width, "page": page})
     with http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()

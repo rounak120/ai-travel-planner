@@ -14,6 +14,7 @@ if (linkedTrip && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
 }
 function updateLocationLink() {
   const id = tripId.value.trim();
+  window.Wayfarer?.setTrip({id});
   document.querySelector("#itinerary-link").href = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
     ? `/itinerary.html?tripId=${encodeURIComponent(id)}` : "/itinerary.html";
   document.querySelector("#select-location-link").href = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)

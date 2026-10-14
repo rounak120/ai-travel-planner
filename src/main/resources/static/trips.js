@@ -46,6 +46,7 @@ tripForm.addEventListener("submit", async event => {
       throw new Error("The server returned an unexpected result. The trip may have been saved; check before submitting again.");
     }
     saved = true;
+    window.Wayfarer?.setTrip(data);
     field("saved-id").value = data.id;
     field("saved-summary").textContent = `${data.destination} · ${data.startDate} to ${data.endDate} · ${data.travelers} travelers`;
     field("open-chat").href = `/?tripId=${encodeURIComponent(data.id)}`;
@@ -65,5 +66,6 @@ tripForm.addEventListener("submit", async event => {
 field("another-trip").addEventListener("click", () => {
   if (saving) return;
   saved = false; savedTrip.hidden = true; lockTrip(false); tripForm.reset();
+  window.Wayfarer?.setTrip(null);
   tripErrors.replaceChildren(); reportTrip("Ready for another trip. The previous trip remains saved."); field("destination").focus();
 });

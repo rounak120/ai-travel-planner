@@ -73,6 +73,14 @@
     check(get("plan-output").textContent.includes("Viewing saved ID 10") && get("plan-output").textContent.includes("2099-10-09T10:00:00Z"),"version ID and creation time identify displayed snapshot");
     check(get("plan-output").textContent.includes("Old place") && get("plan-output").textContent.includes("Saved unsupported weather"),"older location and weather context stay intact");
     check(historyCalls.every(c=>c.options.method==="GET"),"browsing never writes or generates");
+    const callsBeforeExport=historyCalls.length;
+    let downloaded, printed=false;
+    window.Wayfarer.download=(data,name)=>{downloaded={data,name};};
+    window.print=()=>{printed=true;};
+    get("plan-output").querySelector(".export-actions .secondary").click();
+    check(downloaded.data.destination==="Older destination" && downloaded.data.selectedLocation.place.name==="Old place" && downloaded.name.endsWith(".json") && historyCalls.length===callsBeforeExport,"export uses viewed historical snapshot without a request");
+    get("plan-output").querySelector(".export-actions .quiet").click();
+    check(printed && historyCalls.length===callsBeforeExport,"print uses browser without a request");
     const oldSnapshot=get("plan-output").textContent;
     versionFailure=true; get("history-list").querySelectorAll("button")[2].click(); await settle();
     check(get("history-status").textContent.includes("not found") && get("plan-output").textContent===oldSnapshot,"missing version preserves displayed snapshot");
