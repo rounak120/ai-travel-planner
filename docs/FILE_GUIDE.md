@@ -2,6 +2,11 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+`static/itinerary.js` now also handles ten-entry history pages and trip-scoped
+snapshot viewing. `itinerary-ui.test.js` covers cursor pagination, exact historical
+context, errors and state resets alongside generation. See
+[lesson 20](LESSON_20_ITINERARY_HISTORY_UI.md).
+
 `src/main/resources/static/itinerary.html` and `itinerary.js` provide saved-plan
 viewing and explicit new-version generation. `src/test/ui/itinerary-ui.test.js`
 checks read/write separation, consent, safe rendering and recovery with fake API

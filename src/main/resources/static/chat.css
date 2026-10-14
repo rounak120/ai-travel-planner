@@ -52,6 +52,13 @@ a { color: #24574c; }
 .plan-day { background: #f2f5ef; border-radius: 12px; padding: 18px; margin: 18px 0; }
 .plan-day h4 { margin: 16px 0 4px; }
 .plan-warnings { padding-left: 20px; font-size: 13px; color: #526963; }
+#plan-history { border-top: 1px solid #dbe3d5; margin-top: 24px; padding-top: 12px; }
+#history-status { font-size: 13px; overflow-wrap: anywhere; }
+#history-status.error { color: #9a351f; }
+#history-refresh, #history-more, .history-row button { background: #eaf0e4; color: #193b38; padding: 10px 14px; }
+.history-row { border-bottom: 1px solid #dbe3d5; padding: 12px 0; overflow-wrap: anywhere; }
+#history-list { max-height: 360px; overflow-y: auto; margin: 12px 0; }
+.plan-version-label { font-size: 13px; padding: 10px; background: #eaf0e4; border-radius: 8px; }
 #load-trip, #search-location, #save-location { background: #24574c; color: #fff; padding: 11px 18px; font-size: 13px; }
 #location-status.error { color: #9a351f; }
 #location-status, #current-location { white-space: pre-wrap; overflow-wrap: anywhere; }

@@ -1,5 +1,12 @@
 # AI Travel Planner: architecture and build plan
 
+## Browser itinerary history
+
+The itinerary page reads version metadata in ten-entry cursor pages, then fetches
+a selected trip-scoped version on demand. Snapshot ID/time labels distinguish
+historical content from latest-at-load-time content. No automatic model calls,
+weather refreshes, restores or history writes occur when browsing.
+
 ## Browser itinerary workflow
 
 `static/itinerary.html` and `itinerary.js` read trip/latest itinerary via GET and

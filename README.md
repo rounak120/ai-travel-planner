@@ -377,6 +377,11 @@ three model rounds. No chat history, automatic retries or write tools.
 
 ## Browser chat
 
+The itinerary page now includes **Load / refresh history**, paginated older
+versions, and read-only opening of specific saved IDs. It preserves each version's
+original context and does not restore or regenerate it. See
+[Lesson 20: itinerary history UI](docs/LESSON_20_ITINERARY_HISTORY_UI.md).
+
 View or generate plans at **http://localhost:8080/itinerary.html**. Loading reads
 the latest saved version without AI; explicit generation calls Ollama and saves a
 new version. Trips of 1–7 days are supported. See

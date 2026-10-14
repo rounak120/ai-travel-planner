@@ -12,7 +12,8 @@
 <label class="location-option"><input id="plan-confirm" type="checkbox" disabled><span>I want to generate and save a new AI itinerary version.</span></label>
 <button id="plan-generate" type="button" disabled>Generate &amp; save new version</button>
 <p id="plan-status" role="status" aria-live="polite"></p>
-<section id="plan-output" hidden aria-label="Latest successfully loaded or generated itinerary"></section>
+<section id="plan-history" aria-labelledby="history-heading"><h3 id="history-heading">Saved versions</h3><p class="hint">Newest first. IDs identify saved snapshots, not per-trip version numbers. Opening an older version does not restore it as the latest.</p><button id="history-refresh" type="button" disabled>Load / refresh history</button><div id="history-list"></div><button id="history-more" type="button" disabled hidden>Load older versions</button><p id="history-status" role="status" aria-live="polite"></p></section>
+<section id="plan-output" hidden aria-label="Currently viewed saved itinerary"></section>
 <noscript>Enable JavaScript or use the itinerary REST API.</noscript>
 </section><aside><p class="eyebrow">A DRAFT, NOT A BOOKING</p><h2>Know what’s included.</h2><div class="guide"><h3>Activity estimates</h3><p>Costs cover the whole travel party. Accommodation, intercity travel and unlisted meals are excluded.</p><h3>Saved context</h3><p>The selected location and weather shown belong to this saved plan. Loading does not refresh its forecast.</p><h3>You make the decisions</h3><p>Verify places, hours and prices before travelling. No reservations or availability are confirmed.</p><h3>Independent from chat</h3><p>Generation uses your saved trip preferences, not previous chat messages.</p></div></aside></div>
 <footer>Local development only · AI drafts require your review</footer>

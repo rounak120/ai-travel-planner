@@ -1,5 +1,18 @@
 # Verification
 
+## Browser itinerary history (2026-10-14)
+
+- Java regression suite: **175 tests, zero failures/errors**. No backend changes.
+- Itinerary browser suite: **32 assertions passed at desktop and narrow sizes**.
+  Added explicit history loading, duplicate prevention, cursor pagination,
+  end-of-list/empty state, version ID/time labels, historical location/weather,
+  GET-only browsing, failed read preservation, return to latest, generation reset
+  and trip-change reset. Existing generation and snapshot rendering checks pass.
+- Live read-only check of the existing demo trip returned two saved entries,
+  IDs 3 and 2. App restarted with existing profiles; inspected the updated page
+  screenshot. No new model call, forecast request, trip edit or itinerary write.
+- Secret scan and `git diff --check` passed. No dependencies or schema changes.
+
 ## Browser itinerary viewing and generation (2026-10-14)
 
 - Maven suite: **175 tests, zero failures/errors**; static delivery now includes
