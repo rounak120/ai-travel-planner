@@ -377,6 +377,11 @@ three model rounds. No chat history, automatic retries or write tools.
 
 ## Browser chat
 
+View or generate plans at **http://localhost:8080/itinerary.html**. Loading reads
+the latest saved version without AI; explicit generation calls Ollama and saves a
+new version. Trips of 1–7 days are supported. See
+[Lesson 19: itinerary UI](docs/LESSON_19_ITINERARY_UI.md).
+
 Select the exact destination at **http://localhost:8080/location.html**: load a
 saved trip, search, review country/region, then explicitly save one result.
 Trip creation and chat both link to this page. No automatic location selection

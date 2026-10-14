@@ -56,6 +56,8 @@ class AiTravelPlannerApplicationTests {
         assertThat(get("/trips.js").statusCode()).isEqualTo(200);
         assertThat(get("/location.html").body()).contains("id=\"load-trip-form\"", "/location.js");
         assertThat(get("/location.js").statusCode()).isEqualTo(200);
+        assertThat(get("/itinerary.html").body()).contains("id=\"plan-load-form\"", "/itinerary.js");
+        assertThat(get("/itinerary.js").statusCode()).isEqualTo(200);
         assertThat(get("/api/v1/ai/chat").statusCode()).isEqualTo(404);
     }
 

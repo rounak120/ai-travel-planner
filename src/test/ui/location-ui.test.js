@@ -42,6 +42,7 @@
     check(JSON.stringify(JSON.parse(writes[0].options.body)) === JSON.stringify({searchName:"Jaipur",placeId:1269515}), "save sends captured query and ID only");
     check(get("current-location").textContent.includes("Asia/Kolkata") && get("save-location").disabled && get("location-results").hidden, "saved display and duplicate prevention");
     check(get("location-chat").getAttribute("href") === `/?tripId=${id}`, "chat handoff");
+    check(get("location-itinerary").getAttribute("href") === `/itinerary.html?tripId=${id}`, "itinerary handoff");
     submit("load-trip-form"); await settle(); check(get("current-attribution").textContent.includes("GeoNames"), "existing selection loaded");
     await search(); document.querySelector("input[name=candidate]").click();
     get("location-query").value = "Delhi"; get("location-query").dispatchEvent(new Event("input"));

@@ -1,5 +1,12 @@
 # AI Travel Planner: architecture and build plan
 
+## Browser itinerary workflow
+
+`static/itinerary.html` and `itinerary.js` read trip/latest itinerary via GET and
+generate only through an explicit confirmed POST. This reuses the existing saved
+and generation controllers, independently of chat. Costs, warnings and provenance
+are displayed from the server snapshot; no fresh weather is fetched by viewing.
+
 ## Browser destination selection
 
 `static/location.html` and `location.js` use existing trip/location GETs,

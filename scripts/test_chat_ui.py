@@ -29,6 +29,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
             "/location.html": (STATIC / "location.html", "text/html"),
             "/location.js": (STATIC / "location.js", "text/javascript"),
             "/location-ui-test.js": (ROOT / "src/test/ui/location-ui.test.js", "text/javascript"),
+            "/itinerary.html": (STATIC / "itinerary.html", "text/html"),
+            "/itinerary.js": (STATIC / "itinerary.js", "text/javascript"),
+            "/itinerary-ui-test.js": (ROOT / "src/test/ui/itinerary-ui.test.js", "text/javascript"),
         }
         request_path = urlsplit(self.path).path
         if request_path not in routes:
@@ -42,6 +45,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             body = body.replace("</head>", '<script src="/trip-ui-test.js" defer></script></head>')
         if request_path == "/location.html":
             body = body.replace("</head>", '<script src="/location-ui-test.js" defer></script></head>')
+        if request_path == "/itinerary.html":
+            body = body.replace("</head>", '<script src="/itinerary-ui-test.js" defer></script></head>')
         data = body.encode()
         self.send_response(200)
         self.send_header("Content-Type", content_type + "; charset=utf-8")
@@ -57,8 +62,8 @@ if __name__ == "__main__":
     chrome = sys.argv[1] if len(sys.argv) > 1 else CHROME
     window_size = sys.argv[2] if len(sys.argv) > 2 else "1280,1000"
     page = sys.argv[3] if len(sys.argv) > 3 else "/"
-    if urlsplit(page).path not in ("/", "/trips.html", "/location.html") or not page.startswith("/") or page.startswith("//"):
-        raise SystemExit("Choose /, /trips.html or /location.html")
+    if urlsplit(page).path not in ("/", "/trips.html", "/location.html", "/itinerary.html") or not page.startswith("/") or page.startswith("//"):
+        raise SystemExit("Choose /, /trips.html, /location.html or /itinerary.html")
     with http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()

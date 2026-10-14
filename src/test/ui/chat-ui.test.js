@@ -19,6 +19,7 @@
     const linked = new URLSearchParams(window.location.search).get("tripId");
     if (linked) check(get("#trip-id").value === linked && requests.length === 0, "linked trip prefilled without requests");
     if (linked) check(get("#select-location-link").getAttribute("href") === `/location.html?tripId=${linked}`, "linked trip passed to location page");
+    if (linked) check(get("#itinerary-link").getAttribute("href") === `/itinerary.html?tripId=${linked}`, "linked trip passed to itinerary page");
     check(document.documentElement.scrollWidth <= window.innerWidth, "layout has no horizontal overflow");
     get("#message").value = "   "; submit();
     check(requests.length === 0 && get("#status").textContent.includes("1–2000"), "blank message blocked");

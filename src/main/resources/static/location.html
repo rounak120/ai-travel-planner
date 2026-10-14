@@ -14,6 +14,7 @@
     <p class="notice">Saving replaces any currently selected location for this trip. It does not change trip dates or previously saved itineraries.</p>
     <button id="save-location" type="button" disabled>Save selected location</button>
     <p id="location-status" role="status" aria-live="polite"></p><p><a id="location-chat" href="/" hidden>Open this trip in chat ↗</a></p>
+    <p><a id="location-itinerary" href="/itinerary.html" hidden>View or generate this trip’s itinerary ↗</a></p>
     <noscript>Enable JavaScript or use the location REST API.</noscript>
   </section><aside><p class="eyebrow">BEFORE YOU SAVE</p><h2>Names can repeat.</h2><div class="guide"><h3>Check the country and region</h3><p>Several places can share the same name. We never select the first match automatically.</p><h3>Check the timezone</h3><p>Weather requires a valid location timezone. A location with no timezone can still be saved, but will not support weather.</p><h3>Dates still matter</h3><p>All trip dates must be within the current forecast window. Selecting a location will not make a past trip eligible.</p><h3>Server-verified selection</h3><p>When you save, the server searches again and verifies your chosen place ID before storing it.</p></div></aside></div>
   <footer>Local development only · Read-only AI, explicit user saves</footer>

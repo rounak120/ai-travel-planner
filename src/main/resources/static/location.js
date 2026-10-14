@@ -46,6 +46,7 @@ function locationFailure(error, saving = false) {
     : error.message, true);
 }
 loc("location-trip-id").addEventListener("input", () => {
+  loc("location-itinerary").hidden = true;
   loadedTrip = null; loc("trip-context").hidden = true; loc("location-chat").hidden = true;
   clearCandidates(); locationStatus("Load this trip before searching or saving.");
 });
@@ -56,6 +57,7 @@ loc("load-trip-form").addEventListener("submit", async event => {
   const id = loc("location-trip-id").value.trim();
   if (!uuid(id)) { locationStatus("Enter a complete trip UUID.", true); return; }
   loadedTrip = null; clearCandidates(); loc("trip-context").hidden = true; loc("location-chat").hidden = true;
+  loc("location-itinerary").hidden = true;
   locationBusy = true; locationControls(); locationStatus("Loading trip and saved location…");
   try {
     const trip = await locationRequest(`/api/v1/trips/${id}`);
@@ -69,6 +71,7 @@ loc("load-trip-form").addEventListener("submit", async event => {
     loc("location-query").value = String(trip.destination).slice(0, 100);
     showCurrent(selection); loc("trip-context").hidden = false;
     loc("location-chat").href = `/?tripId=${encodeURIComponent(id)}`; loc("location-chat").hidden = false;
+    loc("location-itinerary").href = `/itinerary.html?tripId=${encodeURIComponent(id)}`; loc("location-itinerary").hidden = false;
     locationStatus("Trip loaded. Search and choose a result; nothing has been changed.");
   } catch (error) { locationFailure(error); }
   finally { locationBusy = false; locationControls(); }

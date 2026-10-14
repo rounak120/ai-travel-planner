@@ -1,5 +1,22 @@
 # Verification
 
+## Browser itinerary viewing and generation (2026-10-14)
+
+- Maven suite: **175 tests, zero failures/errors**; static delivery now includes
+  itinerary HTML/JS. Existing backend generation, validation and persistence tests
+  remain unchanged and passing.
+- Itinerary UI: **19 browser assertions passed at desktop and narrow sizes**.
+  Checked no automatic calls, UUID validation, GET-only loading, no saved plan,
+  legacy snapshots, activity costs/warnings, safe text, evidence, explicit POST
+  confirmation, duplicate prevention, snapshot weather labels, HTTP 422/502/405,
+  ambiguous network outcome, old-plan preservation and trip-change invalidation.
+- Navigation regressions passed: **23 chat assertions**, **21 location assertions**.
+- Restarted local app with existing profiles and inspected a live page screenshot.
+  Browser generation checks use fake responses, not real Ollama or development
+  database writes. No live generation, provider request or new saved itinerary.
+- No backend behavior change, migration or new dependency. Secret scan and
+  `git diff --check` passed.
+
 ## Browser destination selection (2026-10-13)
 
 - Java suite: **175 tests, zero failures/errors**, including delivery of the new

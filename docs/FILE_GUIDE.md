@@ -2,6 +2,11 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+`src/main/resources/static/itinerary.html` and `itinerary.js` provide saved-plan
+viewing and explicit new-version generation. `src/test/ui/itinerary-ui.test.js`
+checks read/write separation, consent, safe rendering and recovery with fake API
+responses. See [lesson 19](LESSON_19_ITINERARY_UI.md).
+
 `src/main/resources/static/location.html` and `location.js` provide trip loading,
 location search, explicit selection and save. `src/test/ui/location-ui.test.js`
 checks state invalidation, read/write separation, error recovery and safe rendering.

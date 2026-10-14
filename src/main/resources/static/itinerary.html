@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your itinerary · Wayfarer</title><link rel="stylesheet" href="/chat.css"><script src="/itinerary.js" defer></script></head>
+<body><main>
+<header><a class="brand" href="/">WAYFARER <span>/ AI TRAVEL PLANNER</span></a><a href="/trips.html">Create a trip</a></header>
+<section class="intro"><p class="eyebrow">TURN YOUR IDEAS INTO A DAY-BY-DAY PLAN</p><h1>A little structure.<br>Room to explore.</h1><p>View a saved itinerary or ask local AI to generate a new version.</p></section>
+<div class="layout"><section class="workspace" aria-labelledby="plan-heading">
+<h2 id="plan-heading">Your itinerary</h2>
+<form id="plan-load-form"><label for="plan-trip-id">Saved trip ID</label><input id="plan-trip-id" required maxlength="36" autocomplete="off" spellcheck="false"><div class="actions"><span class="hint">Loading never calls AI.</span><button id="plan-load" type="submit">Load trip &amp; latest plan</button></div></form>
+<section id="plan-trip" hidden><h3>Trip details</h3><p id="plan-trip-summary"></p><p><a id="plan-location-link" href="/location.html">Review selected location ↗</a> · <a id="plan-chat-link" href="/">Open chat ↗</a></p></section>
+<div class="guide"><h3>Generate a new saved version</h3><p>Generation calls Ollama and may fetch weather. It supports trips of 1–7 days and saves a new version on success. Existing versions are retained. It can take several minutes.</p></div>
+<label class="location-option"><input id="plan-confirm" type="checkbox" disabled><span>I want to generate and save a new AI itinerary version.</span></label>
+<button id="plan-generate" type="button" disabled>Generate &amp; save new version</button>
+<p id="plan-status" role="status" aria-live="polite"></p>
+<section id="plan-output" hidden aria-label="Latest successfully loaded or generated itinerary"></section>
+<noscript>Enable JavaScript or use the itinerary REST API.</noscript>
+</section><aside><p class="eyebrow">A DRAFT, NOT A BOOKING</p><h2>Know what’s included.</h2><div class="guide"><h3>Activity estimates</h3><p>Costs cover the whole travel party. Accommodation, intercity travel and unlisted meals are excluded.</p><h3>Saved context</h3><p>The selected location and weather shown belong to this saved plan. Loading does not refresh its forecast.</p><h3>You make the decisions</h3><p>Verify places, hours and prices before travelling. No reservations or availability are confirmed.</p><h3>Independent from chat</h3><p>Generation uses your saved trip preferences, not previous chat messages.</p></div></aside></div>
+<footer>Local development only · AI drafts require your review</footer>
+</main></body></html>

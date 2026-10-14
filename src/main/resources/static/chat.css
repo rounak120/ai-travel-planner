@@ -45,6 +45,13 @@ button:disabled { cursor: wait; opacity: .6; }
 #save-trip, #another-trip { background: #24574c; color: #fff; padding: 11px 18px; font-size: 13px; }
 #saved-trip { margin-top: 24px; border-top: 1px solid #dbe3d5; padding-top: 20px; }
 a { color: #24574c; }
+#plan-load, #plan-generate { background: #24574c; color: #fff; padding: 11px 18px; font-size: 13px; }
+#plan-status.error { color: #9a351f; }
+#plan-status, #plan-output { overflow-wrap: anywhere; }
+#plan-output { margin-top: 24px; border-top: 1px solid #dbe3d5; padding-top: 24px; }
+.plan-day { background: #f2f5ef; border-radius: 12px; padding: 18px; margin: 18px 0; }
+.plan-day h4 { margin: 16px 0 4px; }
+.plan-warnings { padding-left: 20px; font-size: 13px; color: #526963; }
 #load-trip, #search-location, #save-location { background: #24574c; color: #fff; padding: 11px 18px; font-size: 13px; }
 #location-status.error { color: #9a351f; }
 #location-status, #current-location { white-space: pre-wrap; overflow-wrap: anywhere; }
