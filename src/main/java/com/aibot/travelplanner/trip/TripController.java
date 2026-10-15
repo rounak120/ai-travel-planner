@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
@@ -31,5 +32,11 @@ public class TripController {
     @GetMapping("/{id}")
     public Trip get(@PathVariable UUID id) {
         return tripService.get(id);
+    }
+
+    @GetMapping
+    public TripPage list(@RequestParam(defaultValue = "0") int page,
+                         @RequestParam(defaultValue = "10") int size) {
+        return tripService.list(page, size);
     }
 }

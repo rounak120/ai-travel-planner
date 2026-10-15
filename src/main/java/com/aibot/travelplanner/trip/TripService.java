@@ -1,6 +1,8 @@
 package com.aibot.travelplanner.trip;
 
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -48,5 +50,18 @@ public class TripService {
         return tripRepository.findById(id)
                 .orElseThrow(() -> new TripNotFoundException(id))
                 .toTrip();
+    }
+
+    @Transactional(readOnly = true)
+    public TripPage list(int page, int size) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        if (page < 0 || page > 100000) errors.put("page", "must be between 0 and 100000");
+        if (size < 1 || size > 50) errors.put("size", "must be between 1 and 50");
+        if (!errors.isEmpty()) throw new InvalidTripException(errors);
+        // UUID breaks timestamp ties so unchanged data has deterministic page boundaries.
+        var result = tripRepository.findAll(PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "createdAt", "id")));
+        return new TripPage(result.getContent().stream().map(TripEntity::toTrip).toList(),
+                page, size, result.getTotalElements(), result.getTotalPages(), result.hasNext());
     }
 }

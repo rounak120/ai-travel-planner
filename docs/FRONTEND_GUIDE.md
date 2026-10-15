@@ -8,7 +8,7 @@ APIs, so there is no separate frontend server or CORS setup.
 
 | Screen | What it does | Existing API used |
 | --- | --- | --- |
-| `/dashboard.html` | Open trip details by UUID, save/remove browser shortcuts, download trip JSON | GET `/api/v1/trips/{id}` |
+| `/dashboard.html` | Browse My Trips, open details, save/remove browser shortcuts, download trip JSON | GET `/api/v1/trips?page=0&size=10` and GET `/api/v1/trips/{id}` |
 | `/trips.html` | Validate and create a saved trip | POST `/api/v1/trips` |
 | `/location.html` | Search destinations, review and explicitly save the selected place | Trip/location GETs, destination search GET, location PUT |
 | `/weather.html` | Show daily forecast, source, timezone and exact availability errors | Trip GET then trip/weather GET |
@@ -31,8 +31,11 @@ does not fetch, generate, or change anything automatically. Editing a trip ID
 clears old context. Explicit buttons distinguish reads from writes; generating
 an itinerary still requires confirmation. Busy states prevent duplicate submits.
 
-The backend has no list-all-trips endpoint. Consequently, the overview asks for
-a saved trip ID. Its optional shortcuts are a maximum of ten `{id, destination}`
+My Trips explicitly loads database records in ten-trip pages, newest first.
+Previous/Next browse pages; refresh returns to the newest page. Failed reads preserve
+the previous page and explain that it remains shown. Card buttons open trip details.
+The list includes all local database trips, not authenticated per-user records.
+The separate optional shortcuts are a maximum of ten `{id, destination}`
 entries under `wayfarer.shortcuts.v1` in localStorage. They are saved only after
 an explicit click, remain on this browser, and are not an account or synced trip
 library. Clearing browser data removes shortcuts, not PostgreSQL records.
@@ -71,5 +74,5 @@ Other supported paths are `/trips.html`, `/location.html`, `/itinerary.html`, an
 Fixtures do not depend on that trip existing in your database.
 
 This completes the frontend for existing backend features, not production
-authentication, booking, shared accounts, chat memory or a database-wide trip
-library. Keep the app bound to localhost.
+authentication, booking, shared accounts, chat memory or per-user trip ownership.
+Keep the app bound to localhost.

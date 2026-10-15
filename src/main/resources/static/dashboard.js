@@ -29,4 +29,52 @@
     }catch(error){setTrip(null);status(error instanceof TypeError?"Could not reach the app. Check that it is running.":error.message,true);}
     finally{busy=false;el("overview-load").disabled=false;el("overview-id").disabled=false;}
   });renderShortcuts();
+
+  // Library browsing is independent of the currently opened trip and local shortcuts.
+  let listBusy=false, currentPage=null, hasNext=false;
+  function listControls() {
+    el("trips-refresh").disabled=listBusy;
+    el("trips-prev").disabled=listBusy || currentPage===null || currentPage===0;
+    el("trips-next").disabled=listBusy || !hasNext;
+    el("trips-list").setAttribute("aria-busy",String(listBusy));
+  }
+  async function loadTrips(page) {
+    if(listBusy)return;
+    listBusy=true;listControls();
+    el("trips-list-status").textContent="Loading saved trips…";
+    el("trips-list-status").classList.remove("error");
+    try {
+      const data=await request(`/api/v1/trips?page=${page}&size=10`);
+      if(!Array.isArray(data.trips) || data.page!==page || data.size!==10 ||
+          !Number.isInteger(data.totalPages) || data.totalPages<0 ||
+          !Number.isInteger(data.totalElements) || data.totalElements<0 ||
+          typeof data.hasNext!=="boolean" || data.trips.some(t=>!t || !validId(t.id))) {
+        throw new Error("Unexpected trip list response.");
+      }
+      const cards=document.createDocumentFragment();
+      for(const trip of data.trips) {
+        const card=node("article","","shortcut-card");
+        card.append(node("h3",trip.destination),node("p",`${trip.startDate} → ${trip.endDate}`),
+          node("p",`${trip.travelers} travelers · ${trip.budget} ${trip.currency}`));
+        const open=node("button","Open trip","secondary");open.type="button";
+        open.addEventListener("click",()=>{
+          if(busy)return;
+          el("overview-id").value=trip.id;el("overview-id").dispatchEvent(new Event("input"));
+          el("overview-form").requestSubmit();el("overview-id").focus();
+        });
+        card.append(open);cards.append(card);
+      }
+      el("trips-list").replaceChildren(cards);currentPage=page;hasNext=data.hasNext;
+      el("trips-page").textContent=data.trips.length ? `Page ${page+1} of ${data.totalPages}` : "";
+      el("trips-list-status").textContent=data.trips.length ? `${data.totalElements} saved trips. Newest first.`
+        : page===0 ? "No saved trips yet. Create your first trip above." : "No trips on this page. Go back or refresh the list.";
+    } catch(error) {
+      el("trips-list-status").classList.add("error");
+      el("trips-list-status").textContent=(error instanceof TypeError ? "Could not reach the app." : error.message)
+        + (currentPage===null ? " Try loading again." : " Previously loaded trips remain shown. Retry or refresh.");
+    } finally { listBusy=false;listControls(); }
+  }
+  el("trips-refresh").addEventListener("click",()=>loadTrips(0));
+  el("trips-prev").addEventListener("click",()=>{if(currentPage>0)loadTrips(currentPage-1);});
+  el("trips-next").addEventListener("click",()=>{if(hasNext)loadTrips(currentPage+1);});
 })();

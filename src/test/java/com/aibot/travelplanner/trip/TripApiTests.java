@@ -190,6 +190,47 @@ class TripApiTests {
         return request;
     }
 
+    @Test
+    void listsTripsNewestFirstWithDeterministicPagination() throws Exception {
+        var ids = new ArrayList<String>();
+        for (int i = 0; i < 3; i++) {
+            var created = post(JSON.writeValueAsString(validTrip()));
+            assertThat(created.statusCode()).isEqualTo(201);
+            String id = JSON.readTree(created.body()).get("id").asText();
+            ids.add(id);
+            jdbc.update("UPDATE trips SET created_at = ? WHERE id = ?",
+                    java.sql.Timestamp.from(Instant.parse(i == 0 ? "2200-01-01T00:00:00Z" : "2201-01-01T00:00:00Z")),
+                    UUID.fromString(id));
+        }
+        var tied = new ArrayList<>(ids.subList(1, 3));
+        tied.sort(java.util.Comparator.reverseOrder());
+        var firstResponse = get("/api/v1/trips?page=0&size=2");
+        assertThat(firstResponse.statusCode()).isEqualTo(200);
+        var first = JSON.readTree(firstResponse.body());
+        assertThat(first.get("trips").size()).isEqualTo(2);
+        assertThat(first.get("trips").get(0).get("id").asText()).isEqualTo(tied.get(0));
+        assertThat(first.get("trips").get(1).get("id").asText()).isEqualTo(tied.get(1));
+        assertThat(first.get("trips").get(0).get("interests").size()).isEqualTo(2);
+        assertThat(first.get("page").asInt()).isZero();
+        assertThat(first.get("size").asInt()).isEqualTo(2);
+        assertThat(first.get("hasNext").asBoolean()).isTrue();
+        assertThat(first.get("totalElements").asLong()).isGreaterThanOrEqualTo(3);
+        var second = JSON.readTree(get("/api/v1/trips?page=1&size=2").body());
+        assertThat(second.get("trips").get(0).get("id").asText()).isEqualTo(ids.get(0));
+        var defaults = JSON.readTree(get("/api/v1/trips").body());
+        assertThat(defaults.get("page").asInt()).isZero();
+        assertThat(defaults.get("size").asInt()).isEqualTo(10);
+        var empty = JSON.readTree(get("/api/v1/trips?page=100000&size=50").body());
+        assertThat(empty.get("trips").isEmpty()).isTrue();
+        assertThat(empty.get("hasNext").asBoolean()).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"page=-1", "page=100001", "size=0", "size=51", "page=abc", "size=abc", "page=999999999999"})
+    void rejectsInvalidPagination(String query) throws Exception {
+        assertProblem(get("/api/v1/trips?" + query), 400);
+    }
+
     private JsonNode assertProblem(HttpResponse<String> response, int status) {
         assertThat(response.statusCode()).isEqualTo(status);
         assertThat(response.headers().firstValue("content-type").orElse(""))

@@ -6,8 +6,20 @@ Six same-origin screens share `app.js` navigation and `chat.css` responsive styl
 The overview opens saved trip details, direct weather avoids model interpretation,
 and existing create/location/chat/itinerary workflows remain API-backed. Trip IDs
 travel in validated URL parameters. Browser-local shortcuts are explicit opt-in
-and are not a substitute for a server trip-list endpoint. JSON exports and print
+and remain separate from the paginated server trip list. JSON exports and print
 operate on already-loaded data. See [frontend guide](FRONTEND_GUIDE.md).
+
+## My Trips pagination
+
+`GET /api/v1/trips?page=0&size=10` returns a stable `TripPage` DTO with trips,
+page, size, totalElements, totalPages and hasNext. The controller receives query
+parameters; the service bounds page (0–100000) and size (1–50), then asks the
+Spring Data repository for a database page sorted by createdAt DESC, id DESC.
+The UUID tie-breaker makes equal timestamps deterministic. Conversion to API
+records occurs inside the read-only transaction so interests can be loaded.
+No schema change or provider call is required. Invalid parameters return 400.
+Offset pages are not a frozen snapshot: concurrent inserts can shift boundaries;
+refresh starts again at the newest page. The app remains local and unauthenticated.
 
 ## Browser itinerary history
 

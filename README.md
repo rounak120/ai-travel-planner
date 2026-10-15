@@ -80,7 +80,8 @@ by Spring Boot; no Node build, paid UI service, or external font is needed.
 Trip JSON and the viewed itinerary snapshot can be downloaded; itineraries can
 also be printed using the browser's print/save-as-PDF dialog.
 
-The overview opens trips by ID. Optional browser shortcuts store only the trip ID
+The overview lists saved trips with pagination, newest first, and also opens trips by ID.
+Click **Load / refresh trips** under **My Trips**. Optional browser shortcuts store only the trip ID
 and destination locally; they are not a database-wide trip list. Removing a
 shortcut does not delete the trip. There are no account, booking, trip editing,
 or trip deletion endpoints, so the frontend does not offer those operations.

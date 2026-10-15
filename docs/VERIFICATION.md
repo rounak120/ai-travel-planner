@@ -1,5 +1,21 @@
 # Verification
 
+## My Trips library (2026-10-15)
+
+- Java suite: **184 tests passed**, zero failures/errors. Added list API defaults,
+  deterministic newest-first ordering with timestamp ties, page boundaries,
+  empty pages, empty-database service response and invalid pagination checks.
+- Dashboard: **33 browser assertions passed at both 1280px and 390px widths**.
+  Added loading/duplicate prevention, card details and safe text, Previous/Next,
+  opening details, refresh/empty state, malformed responses, HTTP/network errors,
+  preserved previous page and retry controls.
+- Live read-only `GET /api/v1/trips?page=0&size=2` returned two records out of six,
+  with `hasNext=true`. No development records were created or changed.
+- PostgreSQL was initially stopped. Started the documented `.local/postgres`
+  cluster (not Homebrew's default cluster), reran tests successfully, and started
+  the app with its existing ai,mcp,mcp-client profiles. No model/provider calls
+  were needed for this milestone. No schema or dependency changes.
+
 ## Connected frontend (2026-10-14)
 
 - Java regression suite: **175 tests, zero failures/errors**; static delivery

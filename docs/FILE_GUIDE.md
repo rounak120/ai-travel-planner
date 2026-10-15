@@ -2,6 +2,12 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+`trip/TripPage.java` defines the paginated trip-list response. `TripController`
+accepts page/size query parameters, and `TripService` validates and fetches sorted
+database pages through `TripRepository`. The dashboard's My Trips section uses
+this endpoint independently of browser shortcuts. `TripApiTests`, `TripListTests`
+and `dashboard-ui.test.js` cover the list workflow.
+
 The connected frontend uses `src/main/resources/static/app.js` for shared
 navigation, trip context, request/export helpers and opt-in browser shortcuts.
 `dashboard.html`/`dashboard.js` show saved trip details; `weather.html`/`weather.js`
