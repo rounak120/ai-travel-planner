@@ -441,9 +441,17 @@ saved trip, search, review country/region, then explicitly save one result.
 Trip creation and chat both link to this page. No automatic location selection
 or AI writes. See [Lesson 18: location selection UI](docs/LESSON_18_LOCATION_UI.md).
 
-Create a saved trip at **http://localhost:8080/trips.html**, then open it in chat
-with its ID prefilled. This uses the existing trip API and does not invoke AI.
-A saved destination name still needs a location selection before weather works.
+Create a saved trip at **http://localhost:8080/trips.html**: type at least two
+characters in Destination, then choose a matching city using its region, country
+and timezone. Searches start after a short typing pause and send the query to
+Open-Meteo. Nothing is selected automatically. Editing the query clears selection.
+Create Trip saves both trip and location using POST `/api/v1/trips/with-location`
+with `{ "trip": { /* usual trip fields */ }, "location": { "searchName": "Jaipur", "placeId": 1269515 } }`.
+The server rechecks the selected provider ID, uses its canonical city name, and
+saves both records in one transaction. A provider/selection/storage failure leaves
+no partial trip. The original POST `/api/v1/trips` still supports API clients without
+a selected location. The separate location page remains available to change it.
+No AI is invoked; weather still requires eligible dates and a valid timezone.
 See [Lesson 17: trip creation form](docs/LESSON_17_TRIP_FORM.md).
 
 Open **http://localhost:8080/**. The page uses the existing chat API and displays

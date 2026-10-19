@@ -12,7 +12,12 @@
     <section class="workspace" aria-labelledby="form-heading">
       <h2 id="form-heading">Trip details</h2>
       <form id="trip-form">
-        <label for="destination">Destination</label><input id="destination" required maxlength="200" placeholder="Jaipur">
+        <label for="destination">Destination</label><input id="destination" required maxlength="100" placeholder="Start typing a city, e.g. Varanasi" autocomplete="off" aria-describedby="destination-help destination-status">
+        <p id="destination-help" class="hint">Type at least two characters, then select the correct country and region. Search text is sent to Open-Meteo.</p>
+        <button id="destination-search" class="secondary" type="button">Search again</button>
+        <p id="destination-status" role="status" aria-live="polite"></p>
+        <fieldset id="destination-options" hidden><legend>Choose your destination</legend><div id="destination-results"></div></fieldset>
+        <p id="destination-source" class="hint"></p>
         <label for="start-date">Start date</label><input id="start-date" type="date" required>
         <label for="end-date">End date</label><input id="end-date" type="date" required>
         <label for="travelers">Travelers</label><input id="travelers" type="number" required min="1" max="100" step="1" value="2">
@@ -25,6 +30,6 @@
       <section id="saved-trip" hidden aria-labelledby="saved-heading"><h2 id="saved-heading">Trip saved</h2><p id="saved-summary"></p><label for="saved-id">Your trip ID</label><input id="saved-id" readonly><p class="hint">Keep this ID to retrieve your trip later. This page does not store it in browser storage.</p><p><a id="select-location" href="/location.html">Select this trip’s location ↗</a></p><p><a id="open-chat" href="/">Open this trip in chat ↗</a></p><p><a id="open-trip" href="/">View saved trip JSON</a></p><button id="another-trip" type="button">Create another trip</button></section>
       <noscript>Enable JavaScript to use this form, or create a trip with the REST API.</noscript>
     </section>
-    <aside><p class="eyebrow">ONE STEP AT A TIME</p><h2>From idea to itinerary.</h2><div class="guide"><h3>1. Save the basics</h3><p>Creating a trip stores your preferences. It does not generate an itinerary or call an AI model.</p><h3>2. Select a location</h3><p>After saving, follow the location link to search and explicitly choose the right country and region.</p><h3>3. Ask the assistant</h3><p>Open chat with the new trip ID prefilled. Weather also requires every trip date within the current 16-day forecast window.</p></div></aside>
+    <aside><p class="eyebrow">ONE STEP AT A TIME</p><h2>From idea to itinerary.</h2><div class="guide"><h3>1. Choose the exact destination</h3><p>Select a search result while creating the trip. Country, region and timezone help distinguish places with the same name.</p><h3>2. Save everything together</h3><p>Your trip and selected location are saved together. No separate location step or AI call is needed.</p><h3>3. Plan your days</h3><p>Open itineraries to generate a plan. Weather still requires every trip date within the current 16-day forecast window.</p></div></aside>
   </div><footer>Local development only · No bookings or payments</footer>
 </main></body></html>

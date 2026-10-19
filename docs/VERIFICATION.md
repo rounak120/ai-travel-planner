@@ -1,5 +1,20 @@
 # Verification
 
+## Destination selection during creation (2026-10-19)
+
+- Full Java suite: **197 tests, zero failures/errors**. New integration coverage
+  checks canonical provider names, owned trip/location persistence, stale IDs,
+  provider failures, missing selections and rollback on location-storage failure.
+- Trip-form browser suite: **32 assertions each at desktop and 390px mobile**.
+  Covers required selection, invalidation on typing, debounce, query encoding,
+  stale responses, empty/error/malformed results, duplicate-submit protection,
+  payload/links, validation and ambiguous network outcomes. APIs were mocked;
+  no live trip or provider data was changed by verification.
+- JPA inserts are flushed before JDBC location storage within one transaction.
+  Test pools are limited to two connections per cached Spring context to avoid
+  exhausting the local PostgreSQL connection limit during the full suite.
+- Secret scan and `git diff --check` passed.
+
 ## Accounts, edits/deletion, revisions and session memory (2026-10-19)
 
 - Full Java suite: **192 tests, zero failures/errors**. Existing HTTP tests now

@@ -12,7 +12,7 @@ hidden; new trips belong to your account. See [account guide](ACCOUNTS_AND_REVIS
 | Screen | What it does | Existing API used |
 | --- | --- | --- |
 | `/dashboard.html` | Browse My Trips, open details, save/remove browser shortcuts, download trip JSON | GET `/api/v1/trips?page=0&size=10` and GET `/api/v1/trips/{id}` |
-| `/trips.html` | Validate and create a saved trip | POST `/api/v1/trips` |
+| `/trips.html` | Suggest destinations while typing; select a city and save trip/location together | GET `/api/v1/destinations`, POST `/api/v1/trips/with-location` |
 | `/edit.html?tripId=…` | Load and edit a trip | GET then PUT `/api/v1/trips/{id}` |
 | `/account.html` | Register, sign in, sign out | `/api/v1/auth/*` |
 | `/location.html` | Search destinations, review and explicitly save the selected place | Trip/location GETs, destination search GET, location PUT |

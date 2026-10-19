@@ -4,7 +4,8 @@
 
 1. Open `/account.html`. Create your own username/password and sign in. No account
    or password was created for you by the implementation process.
-2. Create a trip or load **My Trips** on the dashboard. The six older trips were
+2. Create a trip (type a destination and select its matching city before saving)
+   or load **My Trips** on the dashboard. The six older trips were
    preserved as unassigned, per your choice. They are hidden from every account;
    there is no public claim/import endpoint. A future administrator-assisted
    assignment must be an explicit, separately authorized database operation.

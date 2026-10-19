@@ -48,6 +48,12 @@ public class TripExceptionHandler extends ResponseEntityExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
+    @ExceptionHandler(com.aibot.travelplanner.destination.DestinationUnavailableException.class)
+    public ProblemDetail destinationUnavailable(RuntimeException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY,
+                "Destination search is unavailable. No trip was saved; try again when the provider is available.");
+    }
+
     private ProblemDetail validationProblem(Map<String, String> errors) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
                 "Check the highlighted trip fields.");

@@ -4,5 +4,8 @@ spring:
       # AI tests override this with a random-port fake, never the real model.
       base-url: http://127.0.0.1:1
   datasource:
+    hikari:
+      # Each cached test context owns a pool; keep the suite within local DB limits.
+      maximum-pool-size: 2
     # Tests must not migrate or modify the development database.
     url: ${TEST_DB_URL:jdbc:postgresql://127.0.0.1:5432/ai_travel_planner_test}

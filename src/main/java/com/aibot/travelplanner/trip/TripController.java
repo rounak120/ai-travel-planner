@@ -20,9 +20,17 @@ import java.util.UUID;
 @RequestMapping("/api/v1/trips")
 public class TripController {
     private final TripService tripService;
+    private final LocatedTripCreation locatedTrips;
 
-    public TripController(TripService tripService) {
+    public TripController(TripService tripService, LocatedTripCreation locatedTrips) {
         this.tripService = tripService;
+        this.locatedTrips = locatedTrips;
+    }
+
+    @PostMapping("/with-location")
+    public ResponseEntity<Trip> createLocated(@Valid @RequestBody CreateLocatedTripRequest request) {
+        Trip trip=locatedTrips.create(request);
+        return ResponseEntity.created(URI.create("/api/v1/trips/"+trip.id())).body(trip);
     }
 
     @PostMapping
