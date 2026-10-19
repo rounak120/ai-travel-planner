@@ -1,5 +1,22 @@
 # AI Travel Planner: architecture and build plan
 
+## Accounts and mutable trip workflows (current)
+
+Spring Security authenticates session cookies, validates CSRF tokens and hashes
+passwords with BCrypt. `TripService` enforces owner checks for all consumers;
+list queries filter by owner. Foreign and unassigned IDs return 404. V4 adds users
+and nullable legacy ownership without assigning or deleting existing data.
+MCP transport extracts the authenticated principal and the tool adapter restores
+it around service calls on the MCP worker thread. Clients cannot choose an owner.
+
+Trip PUT validates the complete form; destination changes clear the current location.
+DELETE cascades to locations/interests/itineraries. Revision POST loads a trip-scoped
+saved version, uses current trip/location/weather context, validates model output
+with the same rules as generation, and inserts a new immutable snapshot.
+Chat retains up to three turns in the server HTTP session, bound to both user and
+trip scope; it does not trust client-supplied history or persist transcripts in SQL.
+See [account and revision guide](ACCOUNTS_AND_REVISIONS.md).
+
 ## Connected browser workspace
 
 Six same-origin screens share `app.js` navigation and `chat.css` responsive styles.
@@ -19,7 +36,7 @@ The UUID tie-breaker makes equal timestamps deterministic. Conversion to API
 records occurs inside the read-only transaction so interests can be loaded.
 No schema change or provider call is required. Invalid parameters return 400.
 Offset pages are not a frozen snapshot: concurrent inserts can shift boundaries;
-refresh starts again at the newest page. The app remains local and unauthenticated.
+refresh starts again at the newest page. The app remains local and authenticated.
 
 ## Browser itinerary history
 
@@ -62,16 +79,16 @@ the existing handling. HTTP 422 and MCP `isError: true` semantics are unchanged.
 Spring Boot serves `static/index.html`, `chat.css` and `chat.js` at `/`.
 The page posts a single question to the same-origin `/api/v1/ai/chat` endpoint
 and renders model prose and tool evidence separately as plain text. It maintains
-only a bounded in-page display, not model memory or persistent chat history.
+an in-page display separate from the bounded server-session memory. There is no persistent chat history.
 No frontend build, new controller, database change or additional model capability.
 
 ## Model-directed read-only tools
 
 `POST /api/v1/ai/chat` → `TravelAssistantService` → Ollama → validated tool request
 → `TravelMcpClient` → HTTP MCP server → existing services → model explanation.
-This opt-in, stateless flow is separate from itinerary generation. It permits two
+This opt-in, session-aware flow is separate from itinerary generation. It permits two
 tool calls and three model rounds, with weather bound to the request's trip ID.
-Returned tool evidence is separate from generated prose. No writes or chat memory.
+Returned tool evidence is separate from generated prose. Tools remain read-only.
 
 ## Explicit local MCP client
 
@@ -108,7 +125,7 @@ Lesson 4, step 1 adds an opt-in Spring AI/Ollama connection test in package `ai`
 Step 2 adds a structured itinerary draft endpoint with server-side validation.
 Validated drafts are now saved as immutable PostgreSQL JSONB snapshots. A separate
 GET route reads the highest-ID saved snapshot without an AI dependency. An opt-in
-read-only MCP server is now implemented; planner-side MCP client integration is future work.
+read-only MCP server and planner-side MCP client integration are implemented.
 
 The `destination` package now adds a direct, read-only Open-Meteo geocoding
 integration via `GET /api/v1/destinations?name=...`. It returns candidate locations;
@@ -154,7 +171,7 @@ working feature; there are no empty placeholder implementations.
 | `ai` | Conversation, prompts, model calls, MCP client, structured output | Weather/location-aware Ollama generation implemented; planner MCP client planned |
 | `mcp` | MCP server tool definitions and transport configuration | Opt-in Streamable HTTP server with two read-only tools and local Host/Origin guard |
 | `destination` / `weather` | External location, weather and travel API adapters | Destination geocoding/selection and trip-date weather implemented; attraction data planned |
-| `security` | Sign-in and ownership checks | Planned before shared deployment |
+| `security` | Sign-in and ownership checks | Session/CSRF authentication, owner-scoped trips, MCP identity; production hardening remains |
 
 Within a growing feature, add `api`, `application`, `domain`, and `infrastructure`
 subpackages when needed. A controller handles HTTP; an application service runs

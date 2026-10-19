@@ -57,7 +57,18 @@ public class TravelMcpClient {
         // Resolve only when requested: the embedded HTTP server must already be running.
         String port = environment.getProperty("local.server.port", environment.getProperty("server.port", "8080"));
         try {
+            var attributes = (org.springframework.web.context.request.ServletRequestAttributes)
+                    org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes();
+            var request = attributes.getRequest();
+            var session = request.getSession(false);
+            if (session == null) throw new IllegalStateException("Authenticated session required");
+            var csrf = (org.springframework.security.web.csrf.CsrfToken) request.getAttribute(
+                    org.springframework.security.web.csrf.CsrfToken.class.getName());
+            var headers = java.net.http.HttpRequest.newBuilder()
+                    .header("Cookie", "JSESSIONID=" + session.getId())
+                    .header(csrf.getHeaderName(), csrf.getToken());
             var transport = HttpClientStreamableHttpTransport.builder("http://127.0.0.1:" + port)
+                    .requestBuilder(headers)
                     .endpoint("/mcp").connectTimeout(Duration.ofSeconds(3))
                     .openConnectionOnStartup(false).build();
             try (var client = McpClient.sync(transport).requestTimeout(Duration.ofSeconds(10))

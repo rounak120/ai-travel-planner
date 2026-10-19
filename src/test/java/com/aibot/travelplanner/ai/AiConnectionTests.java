@@ -91,6 +91,26 @@ class AiConnectionTests {
     }
 
     @Test
+    void revisionPromptIncludesTheSelectedDraftAndRequestedChange() throws Exception {
+        stubTrip(1);providerBody.set(completion(itinerary(1,"250.25")));
+        assertThat(request("/api/v1/trips/"+TRIP_ID+"/itinerary","POST").statusCode()).isEqualTo(200);
+        long version=jdbc.queryForObject("SELECT id FROM itineraries WHERE trip_id=?",Long.class,TRIP_ID);
+        providerBody.set(completion(itinerary(1,"100.00")));
+        try(var client=java.net.http.HttpClient.newHttpClient()) {
+            var response=client.send(com.aibot.travelplanner.TestAuth.request(java.net.URI.create(
+                    "http://127.0.0.1:"+port+"/api/v1/trips/"+TRIP_ID+"/itinerary/revisions"))
+                    .header("Content-Type","application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString("{\"versionId\":"+version+",\"instruction\":\"Make day 1 cheaper\"}"))
+                    .build(),java.net.http.HttpResponse.BodyHandlers.ofString());
+            assertThat(response.statusCode()).isEqualTo(200);
+        }
+        var sent=JsonMapper.builder().build().readTree(requestBody.get());
+        assertThat(sent.get("model").asText()).isEqualTo("qwen3:4b");
+        assertThat(sent.get("messages").toString()).contains("previousDraft","Fort visit","revisionRequest","Make day 1 cheaper");
+        assertThat(itineraries.getVersion(TRIP_ID,version).itinerary().estimatedActivityCostTotal()).isEqualByComparingTo("250.25");
+    }
+
+    @Test
     void returnsValidatedDraftWithServerDatesAndTotals() throws Exception {
         stubTrip(1);
         providerBody.set(completion(itinerary(1, "250.25")));
@@ -429,7 +449,7 @@ class AiConnectionTests {
     }
 
     private HttpResponse<String> request(String path, String method) throws Exception {
-        var request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
+        var request = com.aibot.travelplanner.TestAuth.request(URI.create("http://127.0.0.1:" + port + path))
                 .timeout(Duration.ofSeconds(10))
                 .method(method, HttpRequest.BodyPublishers.noBody()).build();
         try (var client = HttpClient.newHttpClient()) {

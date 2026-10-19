@@ -24,6 +24,16 @@ public class TripService {
     // Field-level constraints have already been checked by @Valid at the HTTP boundary.
     @Transactional
     public Trip create(CreateTripRequest request) {
+        validate(request);
+        // Match PostgreSQL's money scale and timestamp precision in POST and GET responses.
+        var entity = new TripEntity(request.destination().strip(), request.startDate(),
+                request.endDate(), request.travelers(), request.budget().setScale(2), request.currency(),
+                request.interests().stream().map(String::strip).toList(),
+                Instant.now().truncatedTo(ChronoUnit.MICROS));
+        return tripRepository.save(entity).toTrip();
+    }
+
+    private void validate(CreateTripRequest request) {
         Map<String, String> errors = new LinkedHashMap<>();
         if (request.endDate().isBefore(request.startDate())) {
             errors.put("endDate", "must be on or after startDate");
@@ -37,17 +47,32 @@ public class TripService {
             throw new InvalidTripException(errors);
         }
 
-        // Match PostgreSQL's money scale and timestamp precision in POST and GET responses.
-        var entity = new TripEntity(request.destination().strip(), request.startDate(),
-                request.endDate(), request.travelers(), request.budget().setScale(2), request.currency(),
-                request.interests().stream().map(String::strip).toList(),
-                Instant.now().truncatedTo(ChronoUnit.MICROS));
-        return tripRepository.save(entity).toTrip();
+    }
+
+    @Transactional
+    public Trip update(UUID id, CreateTripRequest request) {
+        validate(request);
+        var entity = tripRepository.findById(id).orElseThrow(() -> new TripNotFoundException(id));
+        requireOwner(entity, id);
+        // Never silently keep coordinates for a different destination.
+        if (!entity.toTrip().destination().equals(request.destination().strip())) {
+            tripRepository.clearLocation(id);
+        }
+        entity.update(request);
+        return entity.toTrip();
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        var entity = tripRepository.findById(id).orElseThrow(() -> new TripNotFoundException(id));
+        requireOwner(entity, id);
+        tripRepository.delete(entity);
     }
 
     @Transactional(readOnly = true)
     public Trip get(UUID id) {
         return tripRepository.findById(id)
+                .filter(entity -> com.aibot.travelplanner.security.CurrentUser.name().equals(entity.ownerName()))
                 .orElseThrow(() -> new TripNotFoundException(id))
                 .toTrip();
     }
@@ -59,9 +84,13 @@ public class TripService {
         if (size < 1 || size > 50) errors.put("size", "must be between 1 and 50");
         if (!errors.isEmpty()) throw new InvalidTripException(errors);
         // UUID breaks timestamp ties so unchanged data has deterministic page boundaries.
-        var result = tripRepository.findAll(PageRequest.of(page, size,
+        var result = tripRepository.findByOwnerName(com.aibot.travelplanner.security.CurrentUser.name(), PageRequest.of(page, size,
                 Sort.by(Sort.Direction.DESC, "createdAt", "id")));
         return new TripPage(result.getContent().stream().map(TripEntity::toTrip).toList(),
                 page, size, result.getTotalElements(), result.getTotalPages(), result.hasNext());
+    }
+
+    private void requireOwner(TripEntity entity, UUID id) {
+        if (!com.aibot.travelplanner.security.CurrentUser.name().equals(entity.ownerName())) throw new TripNotFoundException(id);
     }
 }

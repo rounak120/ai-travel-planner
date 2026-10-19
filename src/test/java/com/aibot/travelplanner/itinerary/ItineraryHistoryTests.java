@@ -125,7 +125,7 @@ class ItineraryHistoryTests {
 
     private HttpResponse<String> get(String path) throws Exception {
         try (var client = HttpClient.newHttpClient()) {
-            return client.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
+            return client.send(com.aibot.travelplanner.TestAuth.request(URI.create("http://127.0.0.1:" + port + path))
                     .timeout(Duration.ofSeconds(10)).GET().build(), HttpResponse.BodyHandlers.ofString());
         }
     }

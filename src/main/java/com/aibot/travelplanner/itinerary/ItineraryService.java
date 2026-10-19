@@ -36,6 +36,18 @@ public class ItineraryService {
 
     // Intentionally no transaction here: TripService's DB transaction ends before inference.
     public ItineraryDraft generate(UUID tripId) {
+        return generate(tripId, null, null);
+    }
+
+    public ItineraryDraft revise(UUID tripId, long versionId, String instruction) {
+        if (versionId < 1 || instruction == null || instruction.isBlank() || instruction.length() > 2000) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Provide a positive versionId and revision instructions of 1–2000 characters.");
+        }
+        return generate(tripId, store.getVersion(tripId, versionId).itinerary(), instruction.strip());
+    }
+
+    private ItineraryDraft generate(UUID tripId, ItineraryDraft previous, String instruction) {
         var trip = trips.get(tripId);
         long dayCount = ChronoUnit.DAYS.between(trip.startDate(), trip.endDate()) + 1;
         if (dayCount < 1 || dayCount > 7) {
@@ -45,7 +57,8 @@ public class ItineraryService {
         // even if another request changes the trip's selection while the model runs.
         var selected = locations.find(tripId).orElse(null);
         var weatherContext = weather.forPlanning(trip, selected);
-        var generated = generator.generate(trip, selected, weatherContext);
+        var generated = previous == null ? generator.generate(trip, selected, weatherContext)
+                : generator.revise(trip, selected, weatherContext, previous, instruction);
         if (generated == null || !validator.validate(generated).isEmpty()
                 || generated.days().size() != dayCount) {
             throw new InvalidItineraryException();

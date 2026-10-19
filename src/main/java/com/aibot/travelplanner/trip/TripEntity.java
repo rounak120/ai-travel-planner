@@ -26,6 +26,11 @@ public class TripEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "owner_name", length = 50)
+    private String ownerName;
+
+    public String ownerName() { return ownerName; }
+
     @Column(nullable = false, length = 200)
     private String destination;
 
@@ -60,6 +65,7 @@ public class TripEntity {
     public TripEntity(String destination, LocalDate startDate, LocalDate endDate, int travelers,
                       BigDecimal budget, String currency, List<String> interests, Instant createdAt) {
         this.destination = destination;
+        this.ownerName = com.aibot.travelplanner.security.CurrentUser.name();
         this.startDate = startDate;
         this.endDate = endDate;
         this.travelers = travelers;
@@ -73,5 +79,16 @@ public class TripEntity {
         // Copy interests while the service transaction can still load the collection.
         return new Trip(id, destination, startDate, endDate, travelers, budget, currency,
                 interests, createdAt);
+    }
+
+    public void update(CreateTripRequest request) {
+        destination = request.destination().strip();
+        startDate = request.startDate();
+        endDate = request.endDate();
+        travelers = request.travelers();
+        budget = request.budget().setScale(2);
+        currency = request.currency();
+        interests.clear();
+        interests.addAll(request.interests().stream().map(String::strip).toList());
     }
 }

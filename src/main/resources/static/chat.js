@@ -50,7 +50,7 @@ function renderAnswer(question, selectedTrip, answer) {
     turn.append(details);
   }
   conversation.append(turn);
-  // Keep the visible transcript bounded; it is never sent back as model memory.
+  // Server-side memory is session-scoped; never trust a client-supplied transcript.
   while (conversation.children.length > 20) conversation.firstElementChild.remove();
   conversation.scrollTop = conversation.scrollHeight;
 }
@@ -61,9 +61,14 @@ document.querySelectorAll(".suggestion").forEach(button => button.addEventListen
   message.dispatchEvent(new Event("input"));
   message.focus();
 }));
-document.querySelector("#clear").addEventListener("click", () => {
+document.querySelector("#clear").addEventListener("click", async () => {
+  if(pending)return;
+  pending=true;document.querySelectorAll("button, input, textarea").forEach(node=>{node.disabled=true;});
+  try {await Wayfarer.request("/api/v1/ai/chat/memory",{method:"DELETE"});}
+  catch(error){setStatus(error.message,true);return;}
+  finally {pending=false;document.querySelectorAll("button, input, textarea").forEach(node=>{node.disabled=false;});}
   conversation.replaceChildren(element("p", "View cleared. Your next question starts fresh.", "hint"));
-  setStatus("Only this page’s display was cleared. No saved trips were changed.");
+  setStatus("Conversation memory and this view cleared. No saved trips were changed.");
 });
 
 form.addEventListener("submit", async event => {

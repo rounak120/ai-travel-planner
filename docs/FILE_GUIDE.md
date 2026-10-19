@@ -2,6 +2,15 @@
 
 Paths below are relative to the `ai-travel-planner` project folder.
 
+The `security` package provides account registration, session/CSRF configuration,
+current identity and MCP transport identity. V4 adds `app_users` and nullable
+legacy trip ownership. `account.html/js` and `edit.html/js` provide the new screens;
+dashboard supports confirmed deletion, itinerary history supports revision, and
+chat supports session memory clearing. `AccountFeaturesTests` exercises two-user
+isolation and the new workflows. `TestAuth`/`TestIdentityListener` authenticate
+test fixtures without bypassing the production filter chain.
+See [accounts and revisions](ACCOUNTS_AND_REVISIONS.md).
+
 `trip/TripPage.java` defines the paginated trip-list response. `TripController`
 accepts page/size query parameters, and `TripService` validates and fetches sorted
 database pages through `TripRepository`. The dashboard's My Trips section uses

@@ -29,6 +29,10 @@
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
 		<!-- Local model and an opt-in read-only MCP server. -->
 		<dependency>
 			<groupId>org.springframework.ai</groupId>

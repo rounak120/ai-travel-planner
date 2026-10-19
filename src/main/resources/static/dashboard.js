@@ -26,6 +26,19 @@
       const save=node("button","Save browser shortcut","secondary");save.type="button";save.addEventListener("click",()=>{try{remember(trip);renderShortcuts();status("Shortcut saved on this browser. No trip data was changed.");}catch(error){status(error.message,true);}});
       const exportButton=node("button","Download trip JSON","quiet");exportButton.type="button";exportButton.addEventListener("click",()=>window.Wayfarer.download(trip,`trip-${trip.id}.json`));content.append(save,exportButton);
       el("overview-trip").replaceChildren(content);el("overview-trip").hidden=false;status("Trip loaded. Choose the next step below.");
+      const edit=node("a","Edit trip","action-link");edit.href=`/edit.html?tripId=${encodeURIComponent(trip.id)}`;
+      const remove=node("button","Delete trip","quiet");remove.type="button";
+      remove.addEventListener("click",async()=>{
+        if(busy || !window.confirm(`Permanently delete ${trip.destination}, its selected location and ALL saved itineraries? This cannot be undone.`))return;
+        busy=true;remove.disabled=true;el("overview-load").disabled=true;el("overview-id").disabled=true;
+        try {
+          await request(`/api/v1/trips/${trip.id}`,{method:"DELETE"});
+          try{forget(trip.id);renderShortcuts();}catch{/* The server deletion succeeded even if local storage is unavailable. */}
+          el("overview-trip").hidden=true;el("overview-trip").replaceChildren();setTrip(null);status("Trip and associated history deleted.");
+          await loadTrips(0);
+        }catch(error){status(error.message,true);}finally{busy=false;remove.disabled=false;el("overview-load").disabled=false;el("overview-id").disabled=false;}
+      });
+      el("overview-trip").append(edit,remove);
     }catch(error){setTrip(null);status(error instanceof TypeError?"Could not reach the app. Check that it is running.":error.message,true);}
     finally{busy=false;el("overview-load").disabled=false;el("overview-id").disabled=false;}
   });renderShortcuts();

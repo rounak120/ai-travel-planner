@@ -50,7 +50,25 @@ public class TravelTools {
 
     @McpTool(name = "get_trip_weather", description = "Fetch a fresh forecast for an existing trip UUID and its saved selected location. All dates must be within the local 16-day forecast window. No trip or itinerary changes; not a weather-alert service.",
             annotations = @McpTool.McpAnnotations(readOnlyHint = true, destructiveHint = false, openWorldHint = true))
-    public CallToolResult getTripWeather(@McpToolParam(description = "Existing trip UUID, not a destination name", required = true) String tripId) {
+    public CallToolResult getTripWeather(@McpToolParam(description = "Existing trip UUID, not a destination name", required = true) String tripId,
+            org.springframework.ai.mcp.annotation.context.McpSyncRequestContext context) {
+        // MCP dispatch can run on another thread. Propagate the authenticated transport
+        // principal, never a model argument or caller-supplied owner name.
+        var previous = org.springframework.security.core.context.SecurityContextHolder.getContext();
+        var current = org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
+        if (context == null || !(context.transportContext().get("authentication") instanceof org.springframework.security.core.Authentication auth)) {
+            return error("UNAUTHORIZED", "Sign in to use trip tools.");
+        }
+        current.setAuthentication(auth);
+        try {
+            org.springframework.security.core.context.SecurityContextHolder.setContext(current);
+            return authorizedWeather(tripId);
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.setContext(previous);
+        }
+    }
+
+    private CallToolResult authorizedWeather(String tripId) {
         UUID id;
         try {
             id = UUID.fromString(tripId);

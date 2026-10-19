@@ -70,7 +70,11 @@
     submit(); await settle();
     check(get("#status").textContent.includes("Could not reach") && !get("#send").disabled, "network failure handled");
     get("#clear").click();
-    check(!get(".turn") && get("#conversation").textContent.includes("cleared"), "clear only resets view");
+    await settle();
+    check(!!get(".turn"), "failed memory clear preserves transcript");
+    window.fetch=async(url,options)=>{requests.push({url,options});return {ok:true,status:204,json:async()=>null};};
+    get("#clear").click();await settle();
+    check(!get(".turn") && get("#conversation").textContent.includes("cleared") && requests.at(-1).options.method==="DELETE", "clear resets server memory and view");
     output.textContent = `PASS: ${assertions} browser assertions`;
   } catch (error) {
     output.textContent = `FAIL: ${error.message}`;

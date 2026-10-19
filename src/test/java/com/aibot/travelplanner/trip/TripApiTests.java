@@ -242,7 +242,7 @@ class TripApiTests {
     }
 
     private HttpResponse<String> post(String body) throws Exception {
-        var response = send(HttpRequest.newBuilder(uri("/api/v1/trips"))
+        var response = send(com.aibot.travelplanner.TestAuth.request(uri("/api/v1/trips"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body)));
         if (response.statusCode() == 201) {
@@ -252,7 +252,7 @@ class TripApiTests {
     }
 
     private HttpResponse<String> get(String path) throws Exception {
-        return send(HttpRequest.newBuilder(uri(path)).GET());
+        return send(com.aibot.travelplanner.TestAuth.request(uri(path)).GET());
     }
 
     private URI uri(String path) {

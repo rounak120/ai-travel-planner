@@ -1,5 +1,27 @@
 # Verification
 
+## Accounts, edits/deletion, revisions and session memory (2026-10-19)
+
+- Full Java suite: **192 tests, zero failures/errors**. Existing HTTP tests now
+  authenticate through real form login and CSRF tokens; security is not disabled
+  in tests. Added two-user isolation across trip/location/weather/history/chat/MCP,
+  unassigned-trip protection, edit validation/location reset, deletion cascades,
+  revision success/failure with original preservation, bounded/scoped/clearable
+  memory, registration/password hashing, session rotation, CSRF rejection and logout.
+- A fake Ollama HTTP server verifies that a revision sends the selected draft and
+  requested change and uses the configured `qwen3:4b` model. No live inference or
+  provider calls were needed for verification.
+- Eight browser suites passed at desktop and true 390px widths: dashboard 36,
+  itinerary 38, chat 24, trip creation 19, location 21, weather 14, account 7,
+  edit 9 (**168 per layout; 336 assertions total**). APIs are fake and Chrome
+  profiles isolated; confirmation, failure recovery and safe rendering are covered.
+- Development backup: ignored `.local/pre-accounts-20261019.dump`, mode 0600.
+  Applied additive migration V4. Read-only verification found **six trips, all six
+  unassigned, and zero development accounts**. No existing trip was edited/deleted.
+- Live anonymous trip-list request returns 401; account page visually inspected.
+  Existing Ollama service started and its installed `qwen3:4b` tag confirmed;
+  no model was downloaded. App remains localhost-only.
+
 ## My Trips library (2026-10-15)
 
 - Java suite: **184 tests passed**, zero failures/errors. Added list API defaults,

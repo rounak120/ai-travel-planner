@@ -6,8 +6,9 @@ assistant produces an itinerary and revises it with help from travel tools.
 
 The project supports trips, saved itinerary versions, local AI generation,
 destination selection, live weather, and opt-in read-only MCP server/client tools.
-Model-directed read-only tool calls are available through a stateless chat API;
-a connected browser frontend is available, while conversation memory remains future work.
+Model-directed read-only tool calls are available through a session-aware chat API.
+The frontend includes accounts, owner-scoped trips, editing/deletion, itinerary
+revisions and bounded conversation memory.
 **Trips are now stored in PostgreSQL and survive application restarts.**
 Spring Data JPA handles storage, and Flyway manages the database schema.
 Both the trip API and local AI endpoint need no paid API service or AI key.
@@ -83,8 +84,9 @@ also be printed using the browser's print/save-as-PDF dialog.
 The overview lists saved trips with pagination, newest first, and also opens trips by ID.
 Click **Load / refresh trips** under **My Trips**. Optional browser shortcuts store only the trip ID
 and destination locally; they are not a database-wide trip list. Removing a
-shortcut does not delete the trip. There are no account, booking, trip editing,
-or trip deletion endpoints, so the frontend does not offer those operations.
+shortcut does not delete the trip. Sign in at `/account.html` first. Trip details
+offer Edit and confirmed Delete; itinerary history offers revisions of a selected
+snapshot. No booking endpoints are provided.
 
 For all AI features, start with the existing local profiles:
 
@@ -93,7 +95,30 @@ For all AI features, start with the existing local profiles:
 ```
 
 See [frontend guide](docs/FRONTEND_GUIDE.md) for routes, data flow, limitations,
-and deterministic browser checks. This unauthenticated app is for local use only.
+and deterministic browser checks. This app remains for local use only.
+
+## Accounts, editing, revisions and memory
+
+Open **http://localhost:8080/account.html**, create an account, then sign in.
+Usernames are lowercase letters/numbers/underscores (3–50 characters); passwords
+are 12–72 characters and at most 72 UTF-8 bytes. Passwords are BCrypt hashes,
+not plaintext. Session cookies are HttpOnly and SameSite=Strict; write requests
+require CSRF tokens. All trip APIs, chat and MCP require authentication.
+
+Existing trips remain unassigned and hidden, as requested; no registration can
+claim them. New trips belong to the signed-in account. Editing a destination
+clears its selected location but preserves itinerary snapshots. Confirmed deletion
+removes the trip, its selected location and all its saved itinerary versions.
+
+Chat retains at most three recent turns in the signed-in server session, separately
+from the page display. Switching trip scope or clearing the conversation resets
+memory; sign-out, session expiry and server restart discard it. It is not saved
+to PostgreSQL. See [account and revision guide](docs/ACCOUNTS_AND_REVISIONS.md).
+
+**API examples below show payloads and paths, not an anonymous-access workflow.**
+For curl/IDE/MCP clients, log in with a cookie jar and obtain a fresh CSRF token
+from `/api/v1/auth/csrf` after login; send that session cookie on reads and the
+returned CSRF header/token on writes. The browser performs this automatically.
 
 ## Test and package
 
@@ -357,12 +382,12 @@ and preserve source attribution, date-window rules and five-second provider time
 This is an MCP JSON-RPC endpoint, not a normal browser page. Clients initialize
 a session, list tools and then call them. See [requests-mcp.http](requests-mcp.http)
 or the [MCP lesson](docs/LESSON_12_MCP_SERVER.md) for the tested request sequence.
-The current itinerary flow still calls Java services directly; Ollama is not yet
-connected to these tools through an MCP client.
+The itinerary flow calls Java services directly; conversational AI uses the bounded
+MCP client loop for its read-only tools.
 
-Keep the existing loopback-only bind. MCP has no authentication or trip ownership
-checks; any local client with access can call the tools. Host/Origin checks reduce
-DNS-rebinding/cross-origin exposure, but do not replace authentication. No create,
+Keep the existing loopback-only bind. MCP now requires an authenticated session and
+CSRF protection. Transport identity is propagated to trip ownership checks.
+Host/Origin checks also reduce DNS-rebinding/cross-origin exposure. No create,
 update, delete, booking or itinerary-generation tools are published. Read-only
 tools still use provider quota and can return saved location/weather data. Do not
 expose `/mcp` through tunnels or public binds without a proper security boundary.
@@ -382,7 +407,7 @@ These REST endpoints make real MCP HTTP calls to this app's loopback `/mcp`.
 They are absent without `mcp-client`, do not call Ollama, and save nothing.
 HTTP 200 with `isError: true` means the protocol exchange succeeded but the tool
 failed; check `structuredContent`. Invalid REST input returns 400; MCP connection
-or protocol failures return 502. Keep these unauthenticated endpoints local too.
+or protocol failures return 502. These authenticated endpoints remain local-only.
 
 ## Model-directed travel assistant
 
@@ -425,8 +450,9 @@ Open **http://localhost:8080/**. The page uses the existing chat API and display
 answers separately from expandable MCP evidence. Start the app with
 `ai,mcp,mcp-client` to submit questions. Optional Trip ID enables weather.
 
-Each question is independent; the visible cards are not model memory. The page
-stores nothing, makes no background model calls, and does not modify trips.
+The server remembers up to three recent turns per signed-in session and current
+trip scope. Visible cards are not sent back as a trusted transcript. The page
+makes no background model calls and chat tools do not modify trips.
 No frontend dependencies or separate build are needed.
 
 Current lesson: [Browser chat UI](docs/LESSON_15_CHAT_UI.md).
@@ -438,8 +464,9 @@ See [Lesson 16: precise weather errors](docs/LESSON_16_WEATHER_ERRORS.md).
 
 ## Local development boundary
 
-This starter binds to `127.0.0.1` and has no authentication. Authentication and
-authorization must be added before deploying user-specific travel features.
+This starter binds to `127.0.0.1` and now has session authentication and trip
+ownership checks. It is still not ready for public deployment: HTTPS with Secure
+cookies, login throttling, password recovery, monitoring and backups need production setup.
 Do not expose the AI endpoint or Ollama publicly. Only Actuator health is exposed.
 Keep provider keys in environment
 variables; do not commit them. `.env` files are ignored by Git and are now

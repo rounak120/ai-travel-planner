@@ -4,15 +4,20 @@ Start at http://localhost:8080/dashboard.html. Spring Boot serves the HTML,
 CSS and JavaScript from `src/main/resources/static`; the same origin serves JSON
 APIs, so there is no separate frontend server or CORS setup.
 
+Sign in first via the **Sign in / account** link. Legacy trips are unassigned and
+hidden; new trips belong to your account. See [account guide](ACCOUNTS_AND_REVISIONS.md).
+
 ## Screens and their purpose
 
 | Screen | What it does | Existing API used |
 | --- | --- | --- |
 | `/dashboard.html` | Browse My Trips, open details, save/remove browser shortcuts, download trip JSON | GET `/api/v1/trips?page=0&size=10` and GET `/api/v1/trips/{id}` |
 | `/trips.html` | Validate and create a saved trip | POST `/api/v1/trips` |
+| `/edit.html?tripId=…` | Load and edit a trip | GET then PUT `/api/v1/trips/{id}` |
+| `/account.html` | Register, sign in, sign out | `/api/v1/auth/*` |
 | `/location.html` | Search destinations, review and explicitly save the selected place | Trip/location GETs, destination search GET, location PUT |
 | `/weather.html` | Show daily forecast, source, timezone and exact availability errors | Trip GET then trip/weather GET |
-| `/` | Ask the stateless AI assistant; inspect actual tool results | POST `/api/v1/ai/chat` |
+| `/` | Ask the session-aware AI assistant; inspect actual tool results; clear memory | POST `/api/v1/ai/chat`, DELETE `/api/v1/ai/chat/memory` |
 | `/itinerary.html` | Read latest/history, generate a new snapshot, download or print the viewed plan | Trip and itinerary GETs; explicit confirmed itinerary POST |
 
 The AI and MCP profiles are needed for AI chat, and the AI profile for itinerary
@@ -34,7 +39,8 @@ an itinerary still requires confirmation. Busy states prevent duplicate submits.
 My Trips explicitly loads database records in ten-trip pages, newest first.
 Previous/Next browse pages; refresh returns to the newest page. Failed reads preserve
 the previous page and explain that it remains shown. Card buttons open trip details.
-The list includes all local database trips, not authenticated per-user records.
+The list includes only the signed-in user's trips. The server enforces ownership
+for details, edits, deletion, location, weather, itinerary history/revisions and MCP.
 The separate optional shortcuts are a maximum of ten `{id, destination}`
 entries under `wayfarer.shortcuts.v1` in localStorage. They are saved only after
 an explicit click, remain on this browser, and are not an account or synced trip
@@ -74,5 +80,5 @@ Other supported paths are `/trips.html`, `/location.html`, `/itinerary.html`, an
 Fixtures do not depend on that trip existing in your database.
 
 This completes the frontend for existing backend features, not production
-authentication, booking, shared accounts, chat memory or per-user trip ownership.
+booking, password recovery, login throttling or production deployment hardening.
 Keep the app bound to localhost.

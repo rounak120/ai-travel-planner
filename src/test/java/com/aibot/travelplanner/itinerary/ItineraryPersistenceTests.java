@@ -53,7 +53,7 @@ class ItineraryPersistenceTests {
             assertThat(jdbc.queryForObject("SELECT count(*) FROM itineraries WHERE trip_id = ?",
                     Integer.class, trip.id())).isEqualTo(1);
             try (var client = HttpClient.newHttpClient()) {
-                var response = client.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port
+                var response = client.send(com.aibot.travelplanner.TestAuth.request(URI.create("http://127.0.0.1:" + port
                         + "/api/v1/trips/" + trip.id() + "/itinerary")).GET().build(), HttpResponse.BodyHandlers.ofString());
                 assertThat(response.statusCode()).isEqualTo(200);
                 assertThat(json.readValue(response.body(), ItineraryDraft.class)).isEqualTo(draft);

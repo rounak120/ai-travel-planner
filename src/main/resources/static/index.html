@@ -21,8 +21,8 @@
     </section>
     <div class="layout">
       <section class="workspace" aria-labelledby="chat-heading">
-        <div class="section-title"><h2 id="chat-heading">Ask the assistant</h2><button id="clear" type="button" class="quiet">Clear view</button></div>
-        <p class="notice">Each question starts fresh. Messages shown here are not conversation memory and disappear when you reload.</p>
+        <div class="section-title"><h2 id="chat-heading">Ask the assistant</h2><button id="clear" type="button" class="quiet">Clear conversation</button></div>
+        <p class="notice">The assistant remembers up to three recent turns in your signed-in session. Changing trip scope starts fresh. Reloading clears this display, not server memory; use Clear conversation to forget it. Signing out or session expiry clears memory.</p>
         <div id="conversation" aria-label="Questions and answers">
           <p id="empty">Your next adventure starts with a question.</p>
         </div>
@@ -41,8 +41,8 @@
         <p class="eyebrow">SMALL TOOLS, REAL CONTEXT</p><h2 id="guide-heading">Start exploring</h2>
         <button class="suggestion" type="button" data-question="Search Jaipur and tell me the country and region of the Indian result."><span>01 / DISCOVER</span>Find a destination ↗</button>
         <button class="suggestion" type="button" data-question="Check the weather for this trip and explain any forecast limitations."><span>02 / PREPARE</span>Check trip weather ↗</button>
-        <div class="guide"><h3>See what was checked</h3><p>Every answer lists its actual tool results. An empty list means no live lookup was performed.</p><h3>Read-only by design</h3><p>No bookings, trip changes, or saved chats. AI answers can be wrong; check the source data before making plans.</p></div>
-        <details class="setup"><summary>Local setup</summary><p>Start Ollama and the app with these profiles:</p><code>ai,mcp,mcp-client</code><p>Keep this unauthenticated demo on localhost. Destination searches are sent to Open-Meteo.</p></details>
+        <div class="guide"><h3>See what was checked</h3><p>Every answer lists its actual tool results. An empty list means no live lookup was performed.</p><h3>Read-only tools</h3><p>No bookings or trip changes through chat. Conversation memory is temporary, not stored in PostgreSQL. AI answers can be wrong; check the source data before making plans.</p></div>
+        <details class="setup"><summary>Local setup</summary><p>Start Ollama and the app with these profiles:</p><code>ai,mcp,mcp-client</code><p>Keep this learning app on localhost. Destination searches are sent to Open-Meteo.</p></details>
       </aside>
     </div>
     <footer>Built with Spring Boot, Ollama &amp; MCP <span>Plan thoughtfully. Travel curiously.</span></footer>

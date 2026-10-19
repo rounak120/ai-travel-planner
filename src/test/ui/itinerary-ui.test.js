@@ -73,6 +73,17 @@
     check(get("plan-output").textContent.includes("Viewing saved ID 10") && get("plan-output").textContent.includes("2099-10-09T10:00:00Z"),"version ID and creation time identify displayed snapshot");
     check(get("plan-output").textContent.includes("Old place") && get("plan-output").textContent.includes("Saved unsupported weather"),"older location and weather context stay intact");
     check(historyCalls.every(c=>c.options.method==="GET"),"browsing never writes or generates");
+    const revisionForm=get("plan-output").querySelector(".revision-form");
+    check(!!revisionForm,"viewed historical snapshot exposes revision form");
+    get("revision-instruction").value="Make day 1 cheaper";
+    const beforeRevision=historyCalls.length;window.confirm=()=>false;
+    revisionForm.dispatchEvent(new Event("submit",{cancelable:true}));await settle();
+    check(historyCalls.length===beforeRevision,"revision requires confirmation");
+    const historyFetch=window.fetch;let revisionRequest;
+    window.confirm=()=>true;window.fetch=async(url,options)=>{revisionRequest={url,options};return response(502,{detail:"Revision unavailable"});};
+    revisionForm.dispatchEvent(new Event("submit",{cancelable:true}));await settle();
+    check(revisionRequest.url.endsWith("/revisions")&&JSON.parse(revisionRequest.options.body).versionId===10&&get("plan-output").textContent.includes("Older destination")&&!get("revision-instruction").disabled,"failed revision targets exact version and preserves original");
+    window.fetch=historyFetch;
     const callsBeforeExport=historyCalls.length;
     let downloaded, printed=false;
     window.Wayfarer.download=(data,name)=>{downloaded={data,name};};
@@ -92,6 +103,10 @@
     check(get("history-status").textContent.includes("No saved versions") && get("history-more").hidden,"empty history handled");
     emptyHistory=false; get("history-refresh").click(); await settle(); confirm(); get("plan-generate").click(); await settle();
     check(get("history-list").children.length===0 && get("plan-output").textContent.includes("Newly generated"),"generation invalidates old history list");
+    get("history-refresh").click();await settle();get("history-more").click();await settle();versionFailure=false;
+    get("history-list").querySelectorAll("button")[2].click();await settle();
+    get("revision-instruction").value="Keep it cheaper";get("plan-output").querySelector(".revision-form").dispatchEvent(new Event("submit",{cancelable:true}));await settle();
+    check(get("plan-output").textContent.includes("Newly revised")&&get("history-list").children.length===0,"successful revision displays new snapshot and refreshes history state");
     get("plan-trip-id").value="another"; get("plan-trip-id").dispatchEvent(new Event("input"));
     check(get("plan-output").hidden && get("plan-confirm").disabled && get("plan-generate").disabled,"changing trip clears old context");
     check(get("history-list").children.length===0 && get("history-refresh").disabled,"trip edit clears and disables history");

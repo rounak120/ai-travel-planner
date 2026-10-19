@@ -216,7 +216,7 @@ class WeatherApiTests {
 
     private HttpResponse<String> get(String id) throws Exception {
         try (var client = HttpClient.newHttpClient()) {
-            return client.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/api/v1/trips/" + id + "/weather"))
+            return client.send(com.aibot.travelplanner.TestAuth.request(URI.create("http://127.0.0.1:" + port + "/api/v1/trips/" + id + "/weather"))
                     .timeout(Duration.ofSeconds(10)).GET().build(), HttpResponse.BodyHandlers.ofString());
         }
     }

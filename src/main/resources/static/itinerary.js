@@ -36,7 +36,7 @@ async function planRequest(url, method = "GET") {
   if (!data) throw new Error("Unexpected response. Reload the latest plan before attempting generation again.");
   return data;
 }
-function showPlan(plan, id, label = "Latest saved plan at load time") {
+function showPlan(plan, id, label = "Latest saved plan at load time", versionId = null) {
   if (plan.tripId?.toLowerCase() !== id.toLowerCase() || !Array.isArray(plan.days) || !Array.isArray(plan.warnings)) throw new Error("Unexpected itinerary response. Load the latest plan again.");
   const fragment = document.createDocumentFragment();
   fragment.append(planNode("p", label, "plan-version-label"));
@@ -63,6 +63,24 @@ function showPlan(plan, id, label = "Latest saved plan at load time") {
   download.addEventListener("click", () => window.Wayfarer.download(plan, `itinerary-${id}.json`));
   const print = planNode("button", "Print viewed plan", "quiet"); print.type = "button"; print.addEventListener("click", () => window.print());
   exports.append(download, print); planEl("plan-output").append(exports);
+  planEl("plan-output").append(planNode("p", "This is a saved snapshot. If trip details have changed, its dates, budget and location may differ from the current trip.", "hint"));
+  if (versionId !== null) {
+    const revision = planNode("form", "", "revision-form");
+    const labelNode=planNode("label",`Revise saved ID ${versionId}`);labelNode.htmlFor="revision-instruction";
+    const instruction=planNode("textarea","");instruction.id="revision-instruction";instruction.required=true;instruction.maxLength=2000;
+    const submit=planNode("button","Generate revised version","primary");submit.type="submit";
+    revision.append(labelNode,instruction,planNode("p","Uses the current trip details and a fresh weather check. Saves a new version; the original stays unchanged.","hint"),submit);
+    revision.addEventListener("submit",async event=>{
+      event.preventDefault();if(planBusy||!instruction.value.trim()||!window.confirm("Use local AI to revise this snapshot and save a new version?"))return;
+      planBusy=true;planControls();submit.disabled=true;instruction.disabled=true;planStatus("Revising the selected snapshot…");
+      try {
+        const draft=await Wayfarer.request(`/api/v1/trips/${id}/itinerary/revisions`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({versionId,instruction:instruction.value.trim()})});
+        showPlan(draft,id,"Newly revised saved plan");resetHistory();planStatus("Revision saved as a new version. Original preserved.");
+      }catch(error){planStatus(`${error.message} The original is unchanged. If the connection failed, load latest before retrying: a new version may have been saved.`,true);}
+      finally{planBusy=false;planEl("plan-confirm").checked=false;planControls();submit.disabled=false;instruction.disabled=false;}
+    });
+    planEl("plan-output").append(revision);
+  } else planEl("plan-output").append(planNode("p","To revise a plan, load history and open the saved version you want to change.","hint"));
 }
 planEl("plan-trip-id").addEventListener("input", () => {
   window.Wayfarer?.setTrip(null);
@@ -138,7 +156,7 @@ async function openVersion(id, versionId) {
   try {
     const version = await planRequest(`/api/v1/trips/${encodeURIComponent(id)}/itinerary/versions/${versionId}`);
     if (version.id !== versionId || typeof version.createdAt !== "string") throw new Error("Unexpected version response.");
-    showPlan(version.itinerary, id, `Viewing saved ID ${version.id} · Created ${version.createdAt}`);
+    showPlan(version.itinerary, id, `Viewing saved ID ${version.id} · Created ${version.createdAt}`, version.id);
     planStatus("Viewing a saved snapshot. The latest version and trip are unchanged; no AI or weather refresh was requested.");
     historyStatus(`Opened saved ID ${version.id}. Use Load trip & latest plan to return to the latest.`);
   } catch (error) { historyStatus(`${error instanceof TypeError ? "Could not reach the app." : error.message} The displayed plan is unchanged.`, true); }

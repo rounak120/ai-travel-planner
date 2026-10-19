@@ -23,6 +23,7 @@ public class ItineraryStore {
 
     @Transactional
     public ItineraryDraft save(ItineraryDraft draft) {
+        trips.get(draft.tripId());
         jdbc.update("INSERT INTO itineraries (trip_id, document) VALUES (?, CAST(? AS jsonb))",
                 draft.tripId(), json.writeValueAsString(draft));
         return draft;

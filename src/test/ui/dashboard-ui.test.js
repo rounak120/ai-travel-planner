@@ -16,7 +16,7 @@
     check(!el("overview-trip").hidden && el("overview-trip").textContent.includes("5000 INR"),"details rendered");
     check(!el("overview-trip").querySelector("img")&&!window.injected,"trip text safe");
     check(document.querySelector('[data-app-route="/weather.html"]').getAttribute("href").endsWith(id),"trip context propagated to nav");
-    check(el("overview-trip").querySelectorAll(".action-link").length===4,"complete trip workflow links");
+    check(el("overview-trip").querySelectorAll(".action-link").length===5,"complete trip workflow and edit links");
     check(Wayfarer.shortcuts().length===0,"viewing does not persist browser data");
     el("overview-trip").querySelector(".secondary").click();check(Wayfarer.shortcuts().length===1&&el("overview-shortcuts").querySelectorAll(".shortcut-card").length===1,"explicit shortcut save");
     el("overview-trip").querySelector(".secondary").click();check(Wayfarer.shortcuts().length===1,"shortcut deduplication");
@@ -54,6 +54,13 @@
     window.fetch=async()=>ok({...pageData(0,[],0),totalElements:0});el("trips-refresh").click();await settle();
     check(el("trips-list-status").textContent.includes("No saved trips yet")&&el("trips-list").children.length===0&&el("trips-next").disabled&&el("trips-prev").disabled,"empty library and refresh reset");
     check(document.documentElement.scrollWidth<=window.innerWidth,"library has no horizontal overflow");
+    const deleteButton=[...el("overview-trip").querySelectorAll("button")].find(button=>button.textContent==="Delete trip");
+    let deletes=0;window.confirm=()=>false;window.fetch=async()=>{deletes++;return ok({});};deleteButton.click();await settle();
+    check(deletes===0,"delete requires confirmation");
+    window.confirm=()=>true;window.fetch=async()=>({ok:false,status:403,json:async()=>({detail:"Sign in again"})});deleteButton.click();await settle();
+    check(!el("overview-trip").hidden&&!deleteButton.disabled&&el("overview-status").textContent.includes("Sign in"),"failed delete preserves trip");
+    window.fetch=async(url,options)=>{if(options?.method==="DELETE"){deletes++;return {ok:true,status:204,json:async()=>null};}return ok({...pageData(0,[],0),totalElements:0});};deleteButton.click();await settle();
+    check(deletes===1&&el("overview-trip").hidden&&el("overview-status").textContent.includes("deleted"),"confirmed delete clears context and refreshes list");
     output.textContent=`PASS: ${count} browser assertions`;
   }catch(error){output.textContent=`FAIL: ${error.message}`;}
 })();

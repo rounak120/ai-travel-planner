@@ -34,7 +34,7 @@ class TravelAssistantHttpTests {
 
     HttpResponse<String> post(String body) throws Exception {
         try (var http = HttpClient.newHttpClient()) {
-            return http.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/api/v1/ai/chat"))
+            return http.send(com.aibot.travelplanner.TestAuth.request(URI.create("http://127.0.0.1:" + port + "/api/v1/ai/chat"))
                     .timeout(Duration.ofSeconds(20)).header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body)).build(), HttpResponse.BodyHandlers.ofString());
         }
@@ -86,7 +86,7 @@ class TravelAssistantHttpTests {
         var json = tools.jackson.databind.json.JsonMapper.builder().build();
         var chat = json.readTree(response.body());
         try (var http = HttpClient.newHttpClient()) {
-            var rest = http.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/api/v1/trips/" + id + "/weather"))
+            var rest = http.send(com.aibot.travelplanner.TestAuth.request(URI.create("http://127.0.0.1:" + port + "/api/v1/trips/" + id + "/weather"))
                     .timeout(Duration.ofSeconds(10)).GET().build(), HttpResponse.BodyHandlers.ofString());
             assertThat(rest.statusCode()).isEqualTo(422);
             var error = json.readTree(rest.body());

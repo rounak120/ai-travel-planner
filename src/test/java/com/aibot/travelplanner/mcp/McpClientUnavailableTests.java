@@ -17,7 +17,7 @@ class McpClientUnavailableTests {
     @Test
     void startsWithoutMcpServerAndReturnsSafeGatewayErrorOnDemand() throws Exception {
         try (var http = HttpClient.newHttpClient()) {
-            var request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/api/v1/mcp/tools"))
+            var request = com.aibot.travelplanner.TestAuth.request(URI.create("http://127.0.0.1:" + port + "/api/v1/mcp/tools"))
                     .timeout(Duration.ofSeconds(20)).GET().build();
             var response = http.send(request, HttpResponse.BodyHandlers.ofString());
             assertThat(response.statusCode()).isEqualTo(502);

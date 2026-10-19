@@ -27,6 +27,19 @@ public class ItineraryController {
         return service.generate(tripId);
     }
 
+    public record Revision(long versionId, String instruction) {}
+
+    @PostMapping("/revisions")
+    public ItineraryDraft revise(@PathVariable UUID tripId,
+            @org.springframework.web.bind.annotation.RequestBody Revision request) {
+        return service.revise(tripId, request.versionId(), request.instruction());
+    }
+
+    @ExceptionHandler(ItineraryNotFoundException.class)
+    public ProblemDetail missingVersion(ItineraryNotFoundException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+    }
+
     @ExceptionHandler(TripNotFoundException.class)
     public ProblemDetail missingTrip(TripNotFoundException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());

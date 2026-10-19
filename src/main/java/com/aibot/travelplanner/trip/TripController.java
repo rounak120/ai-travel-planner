@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
@@ -38,5 +40,16 @@ public class TripController {
     public TripPage list(@RequestParam(defaultValue = "0") int page,
                          @RequestParam(defaultValue = "10") int size) {
         return tripService.list(page, size);
+    }
+
+    @PutMapping("/{id}")
+    public Trip update(@PathVariable UUID id, @Valid @RequestBody CreateTripRequest request) {
+        return tripService.update(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        tripService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

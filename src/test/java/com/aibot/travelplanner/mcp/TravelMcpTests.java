@@ -32,6 +32,7 @@ class TravelMcpTests {
     @BeforeEach
     void connect() {
         var transport = HttpClientStreamableHttpTransport.builder("http://127.0.0.1:" + port)
+                .requestBuilder(com.aibot.travelplanner.TestAuth.request(java.net.URI.create("http://127.0.0.1:" + port + "/mcp")))
                 .endpoint("/mcp").openConnectionOnStartup(false).build();
         client = McpClient.sync(transport).requestTimeout(Duration.ofSeconds(10))
                 .initializationTimeout(Duration.ofSeconds(10)).build();
@@ -147,7 +148,7 @@ class TravelMcpTests {
 
     private java.net.http.HttpResponse<String> get(String path) throws Exception {
         try (var http = java.net.http.HttpClient.newHttpClient()) {
-            return http.send(java.net.http.HttpRequest.newBuilder(
+            return http.send(com.aibot.travelplanner.TestAuth.request(
                     java.net.URI.create("http://127.0.0.1:" + port + path))
                     .timeout(Duration.ofSeconds(20)).GET().build(),
                     java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -193,7 +194,7 @@ class TravelMcpTests {
     @Test
     void rejectsForeignOriginOverHttp() throws Exception {
         try (var http = java.net.http.HttpClient.newHttpClient()) {
-            var response = http.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create("http://127.0.0.1:" + port + "/mcp"))
+            var response = http.send(com.aibot.travelplanner.TestAuth.request(java.net.URI.create("http://127.0.0.1:" + port + "/mcp"))
                     .header("Origin", "https://untrusted.example").header("Content-Type", "application/json")
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString("{}"))
                     .timeout(Duration.ofSeconds(5)).build(), java.net.http.HttpResponse.BodyHandlers.ofString());

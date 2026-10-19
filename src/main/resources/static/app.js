@@ -1,5 +1,21 @@
 "use strict";
 (() => {
+  // Session cookies stay HttpOnly. Obtain a current CSRF token before each write,
+  // including login/logout; never persist passwords or tokens in browser storage.
+  const nativeFetch = window.fetch.bind(window);
+  window.addEventListener("storage", event => {if(event.key === "wayfarer.account.changed")location.reload();});
+  window.fetch = async (input, options = {}) => {
+    const url = new URL(typeof input === "string" ? input : input.url, location.href);
+    if (url.origin === location.origin && url.pathname.startsWith("/api/") &&
+        !["GET", "HEAD", "OPTIONS"].includes((options.method || "GET").toUpperCase())) {
+      const response = await nativeFetch("/api/v1/auth/csrf", {cache:"no-store"});
+      if (!response.ok) throw new Error("Could not establish a secure session. Reload and try again.");
+      const csrf = await response.json();
+      const headers = new Headers(options.headers || {});headers.set(csrf.headerName, csrf.token);
+      options = {...options, headers};
+    }
+    return nativeFetch(input, options);
+  };
   const validId = id => typeof id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   const node = (tag, text, className) => { const el = document.createElement(tag); el.textContent = text; if (className) el.className = className; return el; };
   const routes = [["/dashboard.html","Overview","01"],["/trips.html","Create a trip","02"],["/location.html","Choose location","03"],["/weather.html","Trip weather","04"],["/","AI assistant","05"],["/itinerary.html","Itineraries","06"]];
@@ -30,6 +46,7 @@
     const response = await fetch(url, options);
     const data = await response.json().catch(()=>null);
     if (!response.ok) { const error = new Error(data?.detail || `Request failed (HTTP ${response.status}).`); error.status = response.status; error.data = data; throw error; }
+    if (response.status === 204) return null;
     if (!data) throw new Error("Unexpected response from the app.");
     return data;
   }
@@ -53,9 +70,10 @@
   const note=node("div","","sidebar-note"); note.append(node("span","LOCAL & PERSONAL","nav-eyebrow"),node("p","Plan with intention."),node("small","Local AI. Real source data. Your choices stay yours.")); sidebar.append(note); document.body.prepend(sidebar);
   const header=main.querySelector("header");
   if(header) {
-    const title=routes.find(([path])=>path===location.pathname)?.[1] || "AI assistant";
+    const title=routes.find(([path])=>path===location.pathname)?.[1] || ({"/account.html":"Account","/edit.html":"Edit trip"}[location.pathname] || "AI assistant");
     const chip=node("span","","workspace-trip"); chip.id="workspace-trip";
     header.replaceChildren(node("span",`Workspace / ${title}`,"breadcrumb"),chip,node("span","LOCAL DEMO","badge"));
+    const account=node("a","Sign in / account","action-link");account.href="/account.html";header.append(account);
   }
   setTrip(current ? {id:current} : null,false);
 })();

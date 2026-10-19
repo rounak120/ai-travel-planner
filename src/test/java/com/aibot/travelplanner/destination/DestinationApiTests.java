@@ -123,7 +123,7 @@ class DestinationApiTests {
 
     private HttpResponse<String> location(java.util.UUID id, String method, String payload) throws Exception {
         try (var client = HttpClient.newHttpClient()) {
-            return client.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port
+            return client.send(com.aibot.travelplanner.TestAuth.request(URI.create("http://127.0.0.1:" + port
                     + "/api/v1/trips/" + id + "/location")).timeout(Duration.ofSeconds(10))
                     .header("Content-Type", "application/json")
                     .method(method, payload == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(payload))
@@ -267,7 +267,7 @@ class DestinationApiTests {
 
     private HttpResponse<String> get(String suffix) throws Exception {
         try (var client = HttpClient.newHttpClient()) {
-            return client.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port
+            return client.send(com.aibot.travelplanner.TestAuth.request(URI.create("http://127.0.0.1:" + port
                     + "/api/v1/destinations" + suffix)).timeout(Duration.ofSeconds(10)).GET().build(),
                     HttpResponse.BodyHandlers.ofString());
         }

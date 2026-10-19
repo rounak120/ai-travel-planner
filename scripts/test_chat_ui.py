@@ -42,6 +42,12 @@ document.body.append(copy);clearInterval(timer);
         routes = {
             "/": (STATIC / "index.html", "text/html"),
             "/app.js": (STATIC / "app.js", "text/javascript"),
+            "/account.html": (STATIC / "account.html", "text/html"),
+            "/account.js": (STATIC / "account.js", "text/javascript"),
+            "/account-ui-test.js": (ROOT / "src/test/ui/account-ui.test.js", "text/javascript"),
+            "/edit.html": (STATIC / "edit.html", "text/html"),
+            "/edit.js": (STATIC / "edit.js", "text/javascript"),
+            "/edit-ui-test.js": (ROOT / "src/test/ui/edit-ui.test.js", "text/javascript"),
             "/dashboard.html": (STATIC / "dashboard.html", "text/html"),
             "/dashboard.js": (STATIC / "dashboard.js", "text/javascript"),
             "/dashboard-ui-test.js": (ROOT / "src/test/ui/dashboard-ui.test.js", "text/javascript"),
@@ -67,6 +73,9 @@ document.body.append(copy);clearInterval(timer);
             return
         path, content_type = routes[request_path]
         body = path.read_text()
+        if request_path in ("/edit.html", "/account.html"):
+            script = "edit" if request_path == "/edit.html" else "account"
+            body = body.replace("</head>", f'<script src="/{script}-ui-test.js" defer></script></head>')
         if request_path == "/":
             body = body.replace("</head>", '<script src="/ui-test.js" defer></script></head>')
         if request_path == "/trips.html":
@@ -94,7 +103,7 @@ if __name__ == "__main__":
     chrome = sys.argv[1] if len(sys.argv) > 1 else CHROME
     window_size = sys.argv[2] if len(sys.argv) > 2 else "1280,1000"
     page = sys.argv[3] if len(sys.argv) > 3 else "/"
-    if urlsplit(page).path not in ("/", "/dashboard.html", "/weather.html", "/trips.html", "/location.html", "/itinerary.html") or not page.startswith("/") or page.startswith("//"):
+    if urlsplit(page).path not in ("/", "/account.html", "/edit.html", "/dashboard.html", "/weather.html", "/trips.html", "/location.html", "/itinerary.html") or not page.startswith("/") or page.startswith("//"):
         raise SystemExit("Choose a supported frontend page")
     width = int(window_size.split(",")[0])
     if width < 500:

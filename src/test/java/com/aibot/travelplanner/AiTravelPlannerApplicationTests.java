@@ -63,6 +63,10 @@ class AiTravelPlannerApplicationTests {
         assertThat(get("/dashboard.js").statusCode()).isEqualTo(200);
         assertThat(get("/weather.html").body()).contains("id=\"weather-form\"", "/weather.js");
         assertThat(get("/weather.js").statusCode()).isEqualTo(200);
+        assertThat(get("/account.html").body()).contains("id=\"account-form\"");
+        assertThat(get("/account.js").statusCode()).isEqualTo(200);
+        assertThat(get("/edit.html").body()).contains("id=\"edit-form\"");
+        assertThat(get("/edit.js").statusCode()).isEqualTo(200);
         assertThat(get("/api/v1/ai/chat").statusCode()).isEqualTo(404);
     }
 
@@ -76,7 +80,7 @@ class AiTravelPlannerApplicationTests {
     }
 
     private HttpResponse<String> get(String path) throws Exception {
-        var request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
+        var request = com.aibot.travelplanner.TestAuth.request(URI.create("http://127.0.0.1:" + port + path))
                 .timeout(Duration.ofSeconds(10))
                 .GET()
                 .build();
